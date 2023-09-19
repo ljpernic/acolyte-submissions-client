@@ -11,9 +11,9 @@ function Home() {
   const readerArray = []
   return (                                                                           //// STARTS WITH INITIAL STATE DEFINED IN APP/APPCONTEXT.JS, WITH EVERYTHING FALSE, EMPTY, NULL.
     <>
-{/*console.log(`client/src/context/Home.js, global context reader data: ` + reader)*/}
+      {/* {console.log(`client/src/context/Home.js, global context reader data: ` + reader)}
       {Array.isArray(reader) ? readerArray.push(reader[0], reader[1]) : void(0)}
-      {readerArray[1] === 'chiefEditor' ? readerArray[0] && <Redirect to='/dashboard' /> : readerArray[0] && <Redirect to='/dashboard' /> }
+      {readerArray[1] === 'EIC' ? readerArray[0] && <Redirect to='/dashboard' /> : readerArray[0] && <Redirect to='/dashboard' /> } */}
 {/*      {reader && <Redirect to='/dashboard' />}     */}                                  {/*///// BUT IF SOMEONE IS LOGGED IN, REDIRECTS TO DASHBOARD. */}                           
       <Wrapper>
         <nav>
@@ -32,9 +32,6 @@ function Home() {
             <Link to='/login' className='btn hero-btn'>
               Login
               </Link><br /><br />
-            <Link to='/delegate' className='btn hero-btn'>
-              Delegate
-</Link>
           </div>
           <img src={main} alt='submissions' className='img main-img' />
         </div>

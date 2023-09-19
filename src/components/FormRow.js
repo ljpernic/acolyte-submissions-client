@@ -7,6 +7,7 @@ const FormRow = ({
   name,
   value,
   accept,
+  status,
   handleChange,
   horizontal,
   placeholder,
@@ -25,6 +26,7 @@ const FormRow = ({
         accept={accept}
         onChange={handleChange}
         className='form-input'
+//        readOnly={status != "Open"}
         placeholder={placeholder}
       />
     </div>

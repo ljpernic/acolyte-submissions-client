@@ -6,10 +6,13 @@ import logo from '../assets/logo.svg';
 import { FaUserCircle, FaCaretDown } from 'react-icons/fa';
 import { useGlobalContext } from '../context/appContext';
 import { Link } from 'react-router-dom';
+import useAuth from '../hooks/useAuth.js';
 
 const Navbar = () => {
   const { reader, logout } = useGlobalContext();                                      // Sets the reader and logout constants with useGlobalContext.
   const [showLogout, setShowLogout] = useState(false);                                // Sets showLogout based on useState.
+
+  const { decodedName, topStatus } = useAuth();
 
   return (
     <Wrapper>
@@ -19,11 +22,14 @@ const Navbar = () => {
             <img src={logo} alt='Acolyte banana system' />                            {/* Shows logo in the navbar. */}
           </Link>
         </div>
+        <div>
+          {topStatus}          
+        </div>
         {reader && (                                                                    // 
           <div className='btn-container'>                                             {/* inserts it into a button container, */}
             <button className='btn' onClick={() => setShowLogout(!showLogout)}>       {/* which, when clicked, shows the logout button. */}
               <FaUserCircle />                                                        {/* It includes a circle icon to indicate it's a user, */}
-              {reader[0]}                                                                  {/* the reader name itself, and */}
+              {decodedName}                                                                  {/* the reader name itself, and */}
               <FaCaretDown />                                                         {/* a down arrow to indicate that it can be clicked.*/}
             </button>
             <div className={showLogout ? 'dropdown show-dropdown' : 'dropdown'}>      {/* It also changes how it looks depending on if it has been clicked, */}

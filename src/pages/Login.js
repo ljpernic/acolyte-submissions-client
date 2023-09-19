@@ -34,9 +34,8 @@ function Login() {
   const readerArray = []
   return (
     <> 
-      {Array.isArray(reader) ? readerArray.push(reader[0], reader[1]) : void(0)} {/* THIS HAS THE REDIRECTS WHEN YOU LOG IN*/}
-      {readerArray[1] === 'chiefEditor' ? readerArray[0] && <Redirect to='/dashboard' /> : readerArray[0] && <Redirect to='/dashboard' /> }
-{/*      {readerArray[0] && <Redirect to='/dashboard' />} */}
+      {Array.isArray(reader) ? readerArray.push(reader[0], reader[1]) && <Redirect to='/dashboard' /> : void(0)}
+      {/* {console.log('Login.js readerArray: ' + readerArray)} */}
       <Wrapper className='page full-page'>
         <div className='container'>
           {showAlert && (

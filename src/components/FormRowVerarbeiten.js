@@ -1,12 +1,13 @@
-//////// SETS STRUCTURE OF FILE ROW ////////
+//////// SETS STRUCTURE OF FORM ROWS ////////
 
 import React from 'react';
 
-const FileRow = ({
+const FormRowVerarbeiten = ({
   type,                                                       // Sets key pair values?
   name,
   value,
   accept,
+  status,
   handleChange,
   horizontal,
   placeholder,
@@ -15,7 +16,7 @@ const FileRow = ({
     <div className='form-row'>
       {!horizontal && (
         <label htmlFor={name} className='form-label'>         {/* Makes sure the label is keyed to the name value. */}
-          {name}                                              {/* Displays that name value dynamically. */}
+          <strong>{name}</strong>                                              {/* Displays that name value dynamically. */}
         </label>
       )}
       <input
@@ -25,6 +26,7 @@ const FileRow = ({
         accept={accept}
         onChange={handleChange}
         className='form-input'
+        readOnly={status != "Open"}
         placeholder={placeholder}
       />
     </div>
@@ -32,4 +34,4 @@ const FileRow = ({
   
 };
 
-export default FileRow;
+export default FormRowVerarbeiten;

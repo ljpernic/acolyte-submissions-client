@@ -1,4 +1,4 @@
-//////// THIS IS THE ADD READER PAGE. ////////
+//////// THIS IS THE DELEGATE PAGE. ////////
 
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
@@ -6,15 +6,19 @@ import { useGlobalContext } from '../context/appContext';
 import { Redirect } from 'react-router-dom';
 import FormRow from '../components/FormRow';
 import logo from '../assets/logo.svg';
+import useAuth from '../hooks/useAuth.js';
 
 function Delegate() {
   const [values, setValues] = useState({
     name: '',
     email: '',
     password: '',
+    role: '',
     changeLink: ['/delegate', '/dashboard'],
     isMember: false,
   });
+
+  const { decodedName, isEIC } = useAuth();
 
   const { reader, delegate, login, isLoading, showAlert } = useGlobalContext();
   const toggleMember = () => {
@@ -25,18 +29,23 @@ function Delegate() {
   };
   const onSubmit = (e) => {
     e.preventDefault();
-    const { name, email, password, changeLink, isMember } = values;
-    setValues({ ...values, changeLink: ['/dashboard', '/delegate'] });
-    if (isMember) {
-      login({ email, password });
-    } else {
-      delegate({ name, email, password, changeLink });
-    }
+      if (isEIC === true){
+        const { name, email, password, role, changeLink, isMember } = values;
+        setValues({ ...values, changeLink: ['/dashboard', '/delegate'] });
+        if (isMember) {
+          login({ email, password });
+        } else {
+          delegate({ name, email, password, role, changeLink });
+        }
+      } else {
+        void(0)
+      }
   };
   const readerArray = []
 
   return (
     <>
+      {isEIC === false ? <Redirect to='/'></Redirect> : void(0)}
       {Array.isArray(reader) ? readerArray.push(reader[0], reader[1]) : void(0)}
       {reader && <Redirect to={values.changeLink[0]} />}
       <Wrapper className='page full-page'>
@@ -72,6 +81,12 @@ function Delegate() {
               type='password'
               name='password'
               value={values.password}
+              handleChange={handleChange}
+            />
+            <FormRow
+              type='role'
+              name='role'
+              value={values.role}
               handleChange={handleChange}
             />
             {/* end of single form row */}

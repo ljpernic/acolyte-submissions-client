@@ -1,25 +1,25 @@
 //////// RETURNS OPEN SUBMISSIONS FOR LOGGED-IN READER ////////
 
 import { useGlobalContext } from '../context/appContext';                     // Makes useGlobalContext function from appContext available.
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
 import SubmissionColumns from './SubmissionColumns';
 
 // AGGREGATES ALL OPEN SUBMISSIONS ON THE DASHBOARD //
-// TO DO: Create dashboard that has *all* submissions for a particular user //
-// TO DO: Implement pagination for the dashboards // 
 
-const Submissions = () => {
+const Submissions = (props) => {
   const { submissions, isLoading } = useGlobalContext();      //Imports submissions and isLoading functions from on useGlobalContext.
+  const itemsPerPage = 5;
+  const [currentPage, setCurrentPage] = useState(1);  
 
   if (isLoading) {                                            // If the state is isLoading, returns a loading notice.
     return <div className='loading'></div>;
   }
   
   const legitSubmissions = submissions.filter(function(submissionData) {       // Filters all readers by isActive and current story counts.
-    return submissionData.status === 'Open';                                       // Creates a new array with only the eligible readers.
+    return submissionData.status === props.status;                                       // Creates a new array with only the eligible readers.
   });
 
   if (legitSubmissions.length < 1) {                               // If no submissions are found (less than 1), returns a "no submissions" notice.
@@ -33,17 +33,30 @@ const Submissions = () => {
     );
   }
 
+    // Calculate the index range for the current page
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+  
+    // Slice the legitSubmissions array to display only the current page
+    const displayedSubmissions = legitSubmissions.slice(startIndex, endIndex);
+  
+    const totalPages = Math.ceil(legitSubmissions.length / itemsPerPage);
+  
+    const handlePageChange = (newPage) => {
+      setCurrentPage(newPage);
+    };
+
   return (                                                               // Otherwise, it returns all of the submissions found. 
     <>
       <SubmissionColumns />                                              {/* Using the SubmissionColumns component to display them. */}
       <Container>
-        {legitSubmissions.map((item) => {                                     // And a map of all of the submissions, with each corresponding to an "item" array
+        {displayedSubmissions.map((item) => {                                     // And a map of all of the submissions, with each corresponding to an "item" array
           const { _id: id, name, title, type, wordCount, status, createdAt } = item;     //// that contains id, name, email etc.
           let date = moment(createdAt);                                  // Sets the date variable to equal the createdAt value
 //          var modDate = moment(updatedAt);          
           date = date.format('MMMM Do, YYYY');                           //// and then formats it.
 //          modDate = modDate.format('MMMM Do, YYYY');                     //// and then formats it.
-          console.log(item)
+//          console.log(item)
             // IF STATUS IS OPEN, IT DISPLAYS IT IN THE DASHBOARD. OTHERWISE, IT DOESN'T. //
           if (item.status === 'Open') {
           return (
@@ -68,6 +81,19 @@ const Submissions = () => {
            }
         })}
       </Container>
+      <Pagination>
+      <div className="paginationCSS"> {/* Replace 'Pagination' with the pagination component */}
+        {Array.from({ length: totalPages }).map((_, index) => (
+          <div
+            key={index}
+            className={`PageButton ${index + 1 === currentPage ? 'active' : ''}`}
+            onClick={() => handlePageChange(index + 1)}
+          >
+            {index + 1}
+          </div>
+        ))}
+      </div>
+      </Pagination>
     </>
   );
 };
@@ -164,7 +190,6 @@ const Container = styled.section`
     font-weight: bolder;
     color: #645cff;
   }
-
   .blueButton {
     background-color: --primary-500; /* blue */
     border: none;
@@ -247,6 +272,26 @@ const Container = styled.section`
     //   grid-template-columns: repeat(5, 3fr);
     // }
   }
+`
+const Pagination = styled.section`
+.paginationCSS {
+  display: inline-block;
+  color: blue;
+
+.PageButton {
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+  &.active {
+    background-color: blue;
+    color: white;
+  }
+  &:not(.active):hover {
+    background-color: #d8d8ff;
+    border: 1px dashed blue;
+  }  
+}
 `;
                                                                                 // Sets the status box colors.
 const setStatusColor = (status) => {

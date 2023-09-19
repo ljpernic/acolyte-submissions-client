@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Redirect, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
-import FormRow from '../components/FormRow';
+import FormRowVerarbeiten from '../components/FormRowVerarbeiten';
 import Navbar from '../components/Navbar';
 import TierHigh from '../components/TierHigh';
 import TierMiddle from '../components/TierMiddle';
@@ -63,122 +63,111 @@ function Update() {
 
 
 
-// HIDES OR SHOWS ELEMENTS BASED ON CLASS
+    // HIDES OR SHOWS ELEMENTS BASED ON CLASS
   var allElements = document.getElementsByClassName('allTags')
-//  var highElement = document.getElementById('highId')
+  let newStatus = values.status;
+//
+//
+// DISPLAY HTML ELEMENTS ON THE RIGHT SIDE WHEN LEFT-SIDE BUTTONS ARE CLICKED
+//
+//
+    // EACH OF THESE DISPLAY FUNCTIONS DOES THE FOLLOWING:
+    // --> Hides all elements
+    // --> Sets a value for newStatus (displayUpdate passes the old status through; the others change it to the new status)
+    // --> Displays the top right text and the form submission button 
+  const displayUpdate = (e) => {
+    hideAndShowStuff(allElements, 'none')
+    newStatus = values.status;
+    document.getElementById("updateText").style.display = "block";
+    document.getElementById("verarbeitenButton").style.display = "block";     
+  };
 
-//  var baseElements = document.getElementsByClassName('baseTags')
-
-
-
-  // DISPLAYS COVER LETTER AND PROCESSING FORMS
-  //// Can probably combine these into one function with if statements? If [some identifier] is X, style.display = 'block'?
-    const displayCover = (e) => {
+  const displayCover = (e) => {
     hideAndShowStuff(allElements, 'none')
     document.getElementById("cover").style.display = "block";
   };
 
   const displayHigh = (e) => {
     hideAndShowStuff(allElements, 'none')
+    newStatus = "Rejected, Third Round";
     document.getElementById("highEmail").style.display = "block";
-    document.getElementById("highButton").style.display = "block";    
+    document.getElementById("verarbeitenButton").style.display = "block";     
   };
 
   const displayMiddle = (e) => {
     hideAndShowStuff(allElements, 'none')
+    newStatus = "Rejected, Second Round";
     document.getElementById("middleEmail").style.display = "block";
-    document.getElementById("middleButton").style.display = "block";    
+    document.getElementById("verarbeitenButton").style.display = "block";         
   };
 
   const displayLow = (e) => {
     hideAndShowStuff(allElements, 'none')
+    newStatus = "Rejected, First Round";
     document.getElementById("lowEmail").style.display = "block";
-    document.getElementById("lowButton").style.display = "block";    
+    document.getElementById("verarbeitenButton").style.display = "block";       
   };
 
   const displayAnon = (e) => {
     hideAndShowStuff(allElements, 'none')
+    newStatus = "Rejected Anonymously";
     document.getElementById("anonEmail").style.display = "block";
-    document.getElementById("anonButton").style.display = "block";    
+    document.getElementById("verarbeitenButton").style.display = "block";         
   };
 
   const displayRec = (e) => {
     hideAndShowStuff(allElements, 'none')
+    newStatus = "Recommended";
     document.getElementById("recEmail").style.display = "block";
-    document.getElementById("recButton").style.display = "block";    
+    document.getElementById("verarbeitenButton").style.display = "block";     
   };
 
   const openFile = (e) => {
     e.preventDefault();
-//    hideAndShowStuff(allElements, 'none')
-//    hideAndShowStuff(baseElements, 'block')
     console.log('This button will open the file. ')
   };
-
- 
-  // TO DO: Add to handle functions something that makes the input fields readonly/disabled.
-  // Can use something like   document.getElementById("allTags").readOnly = true; ??
-  // TO DO: Make it so that the fields are not editable if the submission is not active?  
-  // TO DO: Make it so that the readerNotes field isn't required to submit the form (or only under certain circumstances?).
-  // TO DO: Fix editor name and role in the rejection emails.
-
-// MAKE CHANGE TO DB AND SEND EMAIL  
-  const handleHigh = (e) => {
-    e.preventDefault();
-    const { name, email, title, reader, status, readerNote } = values;
-    if (name && email && title && reader && status && readerNote) {
-      const status = "Rejected, Third Round";
-      verarbeitenSubmissionClient(id, { name, title, email, reader, status, readerNote });
-    }
-//    console.log(`handleRejection values: ` + JSON.stringify(values));
-  };
-
-  const handleMid = (e) => {
-    e.preventDefault();
-    const { name, email, title, reader, status, readerNote } = values;
-    if (name && email && title && reader && status && readerNote) {
-      const status = "Rejected, Second Round";
-      verarbeitenSubmissionClient(id, { name, email, title, reader, status, readerNote });
-    }
-//    console.log(`handleRejection values: ` + JSON.stringify(values));
-  };
-
-  const handleLow = (e) => {
-    e.preventDefault();
-    const { name, email, title, reader, status,readerNote } = values;
-    if (name && email && title && reader && status && readerNote) {
-      const status = "Rejected, First Round";
-      verarbeitenSubmissionClient(id, { name, email, title, reader, status, readerNote });
-    }
-//    console.log(`handleRejection values: ` + JSON.stringify(values));
-  };
-
-  const handleAnon = (e) => {
-    e.preventDefault();
-    const { name, email, title, reader, status, readerNote } = values;
-    if (name && email && title && reader && status && readerNote) {
-      const status = "Rejected Anonymously";
-      verarbeitenSubmissionClient(id, { name, email, title, reader, status, readerNote });
-    }
-//    console.log(`handleRejection values: ` + JSON.stringify(values));
-  };
-
-  const handleRec = (e) => {
-    e.preventDefault();
-    const { name, email, title, reader, status, readerNote } = values;
-    if (name && email && title && reader && status && readerNote) {
-      const status = "Recommended";
-      verarbeitenSubmissionClient(id, { name, email, title, reader, status, readerNote });
-    }
-//    console.log(`handleRejection values: ` + JSON.stringify(values));
-  };
-
-
-// FORM UPDATER
+//
+//
+// UPDATE STATUS TO REJECTED AND SEND EMAIL  
+//
+//
+const handleVerarbeiten = (e, status) => {
+  e.preventDefault();
+  const { name, email, title, reader, readerNote } = values;
+//  console.log("values: " + JSON.stringify(values))
+//  console.log("newStatus: " + newStatus)
+  const selectedStatus = status || newStatus;
+//  console.log("selectedStatus after updating: " + selectedStatus)
+  if (name && email && title && reader && selectedStatus) {
+    verarbeitenSubmissionClient(id, { name, title, email, reader, status: selectedStatus, readerNote });
+  }
+  if (status !== 'open' && status !== 'EIC') {
+  document.getElementById("verarbeitenButton").style.display = "none";
+  document.getElementById("verarbeitenSuccess").style.display = "block";
+  }
+};
+//
+//
+// THE DASHBOARD SUBMIT FUNCTIONALITY STARTS HERE AND HAS FOUR POINTS.
+// THIS IS THE FORM ITSELF THAT SUBMITS.
+//
+//
   const handleSubmit = (e) => {
     e.preventDefault();
     const { name, email, title, wordCount, status, coverLetter, readerNote } = values;
-    if (name && email && title && wordCount && status && coverLetter && readerNote) {
+    if (name && email && title && wordCount && status && coverLetter) {
+      if (status != "Open") {
+        var theseTags = document.getElementsByClassName('allTags');
+        for (var i = 0; i < theseTags.length; i++)
+        {
+          theseTags.item(i).readOnly = true;
+        }
+        var theseButtons = document.getElementsByClassName('allButons');
+        for (var i = 0; i < theseButtons.length; i++)
+        {
+          theseButtons.item(i).style.display = "none";
+        }
+      }
       verarbeitenSubmissionClient(id, { name, email, title, wordCount, status, coverLetter, readerNote });
     }
   };
@@ -204,16 +193,21 @@ function Update() {
       {!reader && <Redirect to='/' />}
       <Navbar />
       <Container className='page'>
+{/*
+//
+// DASHBOARD, TOP LEFT SIDE (FOR UPDATING ENTRY)
+//
+*/}
         <form className='form' onSubmit={handleSubmit}>
           <p>{verarbeitenComplete && 'Success! Processing Complete'}</p>
 
-          {/* BIG GRID FOR TWO COLUMNS */}
+    {/* BIG GRID FOR TWO COLUMNS */}
           <div className="bigGrid">
 
-            {/* LEFT HALF OF GRID, WITH UPDATE FORM */}
+    {/* LEFT HALF OF GRID, WITH UPDATE FORM */}
             <div className='container'>
 
-              {/* HEADER OF LEFT COLUMN */}
+    {/* HEADER OF LEFT COLUMN */}
               <div className='action-div-top'>
                   <h2>
                     <strong>
@@ -221,29 +215,31 @@ function Update() {
                     </strong>
                   </h2>
               </div>
-
-              <FormRow
+              <FormRowVerarbeiten
                 type='text'
                 name='title'
                 value={values.title}
+                status={values.status}
                 handleChange={handleChange}
-              /> 
+              />
               <br />
-              <FormRow
+              <FormRowVerarbeiten
                 type='text'
                 name='name'
                 value={values.name}
+                status={values.status}
                 handleChange={handleChange}
               /> 
               <br />
-              <FormRow
+              <FormRowVerarbeiten
                 type='email'
                 name='email'
                 value={values.email}
+                status={values.status}
                 handleChange={handleChange}
               /> 
               <br />
-<div className='action-div-top'>
+            <div className='action-div-top'>
               <div className='form-row action-div-WC-S'>
                 <label htmlFor='wordCount' className='form-label'>
                 <strong>Word Count</strong>
@@ -256,54 +252,95 @@ function Update() {
                 </label>
                   {values.status}
               </div> 
-</div>
+            </div>
               <br />
               <div className='action-div-top'>
                 <strong>
                   Click to open reply form
                 </strong>
               </div>
-
-              {/* CONTAINER FOR TOP ROW OF BUTTONS, LEFT-HAND COLUMN */}
+{/* 
+//
+// DASHBOARD, BOTTOM LEFT SIDE (FOR BUTTONS TO CHANGE RIGHT-SIDE DISPLAY)
+//
+*/}
+    {/* CONTAINER FOR TOP ROW OF BUTTONS, LEFT-HAND COLUMN */}
               <div className="action-div">
                 <button
-                    className= 'blue'
+                    className={values.status !== "Open" ? 'disabledBlue' : 'blue'}
                     type='button'
+                    disabled={values.status !="Open"}
                     onClick={displayRec}
                 >
                     Recommend
                 </ button>
                 <button                                                       
-                      className= 'blue'
-                      type='button'
-                      onClick={displayAnon}
+                    className={values.status !== "Open" ? 'disabledBlue' : 'blue'}
+                    type='button'
+                    disabled={values.status !="Open"}
+                    onClick={displayAnon}
                 >
-                      Anonymous Rejection
+                    Anonymous Rejection
                 </ button>
               </div>
               
-            {/* CONTAINER FOR MIDDLE ROW OF BUTTONS, LEFT-HAND COLUMN */}            
+    {/* CONTAINER FOR MIDDLE ROW OF BUTTONS, LEFT-HAND COLUMN */}            
               <div className="action-div">
-                <button className= 'blue' type='button' onClick={displayLow}> Low-tier rejection </ button>
-                <button className= 'blue' type='button' onClick={displayMiddle}> Middle-tier rejection </ button>
-                <button className= 'blue' type='button' onClick={displayHigh}> High-tier rejection </ button>
+                <button 
+                  className={values.status !== "Open" ? 'disabledBlue' : 'blue'}
+                  type='button' 
+                  disabled={values.status !="Open"} 
+                  onClick={displayLow}
+                > 
+                      Low-tier rejection 
+                </ button>
+                <button 
+                  className={values.status !== "Open" ? 'disabledBlue' : 'blue'}
+                  type='button' 
+                  disabled={values.status !="Open"}
+                  onClick={displayMiddle}
+                > 
+                      Middle-tier rejection 
+                </ button>
+                <button 
+                  className={values.status !== "Open" ? 'disabledBlue' : 'blue'}
+                  type='button' 
+                  disabled={values.status !="Open"}
+                  onClick={displayHigh}
+                > 
+                      High-tier rejection 
+                </ button>
               </div>
 
-              {/* CONTAINER FOR MIDDLE ROW OF BUTTONS, LEFT-HAND COLUMN */}  
+    {/* CONTAINER FOR BOTTOM ROW OF BUTTONS, LEFT-HAND COLUMN */}  
               <div className='action-div-middle'>
                 <strong>Other Actions</strong>
               </div>          
               <div className="action-div">
                 <button className= 'blue' type='button' onClick={openFile}> Open File </ button>
-                <button type='submit' className='blue' disabled={isLoading}> {isLoading ? 'Updating...' : 'Update'} </button>
+                <button 
+                  className={values.status !== "Open" ? 'disabledBlue' : 'blue'}
+                  type='button' 
+                  disabled={values.status !="Open"}
+                  onClick={displayUpdate}
+                > 
+                      Update 
+                </button>
                 <button className= 'blue' type='button' onClick={displayCover}> Cover Letter </button>
                </div>
+               <div className="action-div">
+                <Link to='/dashboard'>
+                  <button className= 'blue' type='button'> Back to Dashboard </ button>
+                </Link>
+               </div>
             </div>
-
-            {/* RIGHT HALF OF GRID, WITH EMAIL TEMPLATE */}
+{/* 
+//
+// DASHBOARD, TOP RIGHT SIDE (DIFFERENT DISPLAYS, DEPENDING ON BUTTON PRESS; DEFAULT IS COVER LETTER)
+//
+*/}
             <div className='container'>
-              {/* STARTS THE DIV HIDDEN; CHANGED BY THE displayEmail FUNCTION */}
-              {/* TO DO: Put the email templates and buttons in their own boxes with the reader note input field in *its* own css box too*/}
+    {/* TEXT OF SUBMITTED COVER LETTER */}
               <div className = 'allTags' id='cover' style={{width : '100%', height : '516px'}}>
                 <h2 className = 'action-div-top' >
                   <strong>
@@ -314,6 +351,20 @@ function Update() {
                   {values.coverLetter}
                 </p>
               </div>
+    {/* TOP-RIGHT TEXT FOR UPDATES */}
+              <div className = 'allTags' id='updateText' style={{width : '100%', height : '516px', display : 'none'}}>
+                <div style={{width : '100%', height : '440px'}}>
+                  <h2 className = 'action-div-top' >
+                    <strong>
+                      Update submission
+                    </strong>
+                  </h2>
+                  <p>
+                    Are you sure you want to update the submission?
+                  </p>
+                </div>
+              </div>
+    {/* TOP-RIGHT TEXT FOR TOP-TIER REJECTION */}
                 <div className ='allTags' id='highEmail' style={{display : 'none'}}>
                   <TierHigh
                     name={values.name}
@@ -323,12 +374,8 @@ function Update() {
                     readerNote={values.readerNote}
                     handleChange={handleChange}
                   />
-                  <div className='action-div-top'>
-                    <button className = 'blue allTags' id='highButton' style={{display : 'none'}} type='button' onClick={handleHigh}>
-                      High-Tier Rejection
-                    </ button>
-                  </div>
                 </div>
+    {/* TOP-RIGHT TEXT FOR MIDDLE-TIER REJECTION */}                
                 <div className ='allTags' id='middleEmail' style={{display : 'none'}}>
                   <TierMiddle
                     name={values.name}
@@ -337,15 +384,10 @@ function Update() {
                     currentReader={currentReader}
                     readerNote={values.readerNote}
                     handleChange={handleChange}
-                  /> 
-                  <div className='action-div-top'>
-                    <button className = 'blue allTags' id='middleButton' style={{display : 'none'}} type='button' onClick={handleMid}>
-                      Middle-Tier Rejection
-                    </ button>
-                  </div>
+                  />
                 </div>
-
-                <div className ='allTags' id='lowEmail' style={{display : 'none'}}>
+    {/* TOP-RIGHT TEXT FOR LOW-TIER REJECTION */}   
+                <div className ='allTags ' id='lowEmail' style={{display : 'none'}}>
                   <TierLow
                     name={values.name}
                     type={values.type}
@@ -354,13 +396,8 @@ function Update() {
                     readerNote={values.readerNote}
                     handleChange={handleChange}
                   /> 
-                  <div className='action-div-top'>
-                    <button className = 'blue allTags' id='lowButton' style={{display : 'none'}} type='button' onClick={handleLow}>
-                      Low-Tier Rejection
-                    </ button>
-                  </div>
                 </div>
-
+    {/* TOP-RIGHT TEXT FOR ANONYMOUS REJECTION */}
                <div className ='allTags' id='anonEmail' style={{display : 'none'}}>
                   <TierAnon
                     name={values.name}
@@ -369,12 +406,8 @@ function Update() {
                     readerNote={values.readerNote}
                     handleChange={handleChange}
                   /> 
-                  <div className='action-div-top'>
-                    <button className = 'blue allTags' id='anonButton' style={{display : 'none'}} type='button' onClick={handleAnon}>
-                      Anonymous Rejection
-                    </ button>
-                  </div>
-                  </div>
+                </div>
+    {/* RECOMMEND TEXT FOR RECOMMENDATION */}
                <div className ='allTags' id='recEmail' style={{display : 'none'}}>
                   <TierRec
                     name={values.name}
@@ -384,13 +417,17 @@ function Update() {
                     readerNote={values.readerNote}
                     handleChange={handleChange}
                   /> 
-                  <div className='action-div-top'>
-                    <button className = 'blue allTags' id='recButton' style={{display : 'none'}} type='button' onClick={handleRec}>
-                      Recommend
-                    </ button>
-                  </div>
                 </div>
-{/* TO DO: Insert paragraphs into the text so that the handleChange stuff keeps the line breaks! */}
+    {/* SUBMIT BUTTON FOR SENDING REJECTIONS, RECOMMENDATIONS, DB UPDATES, ETC */}
+                    <div className='action-div-top'>
+                    <button className = 'red allTags' id='verarbeitenButton' style={{display : 'none'}} type='button' onClick={handleVerarbeiten}>
+                      Submit
+                    </ button>
+    {/* SUCCESSFUL REJECTION TEXT. MAKES THE BUTTON UNCLICKABLE. */}
+                    <div className = 'allTags' id='verarbeitenSuccess' style={{display : 'none'}}> 
+                      Submit successful!
+                    </div>
+                  </div>
                 <div>
                   <label className='form-label'>      
                     <strong>Reader Notes</strong>  
@@ -398,6 +435,7 @@ function Update() {
                   <textarea
                     value={values.readerNote}
                     name='readerNote'
+                    readOnly={values.status != "Open"}
                     onChange={handleChange}
                     className='form-textarea'
                     placeholder='placeholder text...'
@@ -407,6 +445,7 @@ function Update() {
               <br />
             </div>
           </div>
+          
         </form>
       </Container>
     </>
@@ -473,6 +512,45 @@ const Container = styled.section`
     background-color: rgba(76, 175, 80, 8%);
     box-shadow: 0px 0px 0px 10px rgba(0,0,0,0.1), 0px 0px 0px 10px rgba(0,0,0,0.1);
     color: #645cff;
+  }
+
+  .red {
+    background-color: #993530; /* red */
+    border: none;
+    color: white;
+    padding: 5px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    float: left;
+    border: 1px solid red;
+    width: 150px;
+    height: 50px;
+  }
+  .red:hover {
+    background-color: rgba(76, 175, 80, 8%);
+    box-shadow: 0px 0px 0px 10px rgba(0,0,0,0.1), 0px 0px 0px 10px rgba(0,0,0,0.1);
+    color: #645cff;
+  }
+
+  .disabledBlue {
+    background-color: #36454F; /* Charcoal */
+    border: none;
+    color: white;
+    padding: 5px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    float: left;
+    border: 1px solid blue;
+    width: 150px;
+    height: 50px;
   }
 
   .action-div {

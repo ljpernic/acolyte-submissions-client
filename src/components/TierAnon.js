@@ -25,7 +25,8 @@ const TierAnon = ({
         Sincerely,
       </p>
       <p>
-        The Editorial Team
+        The Editorial Team <br />
+        Haven Spec Magazine
       </p>
     </div>
     );

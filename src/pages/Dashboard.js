@@ -4,10 +4,14 @@ import { useEffect } from 'react';
 import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
 import Navbar from '../components/Navbar';
+import BottomButtons from '../components/BottomButtons';
 import Submissions from '../components/Submissions';
 
 function Dashboard() {
   const { showAlert, fetchSubmissionsClient } = useGlobalContext();
+
+//  const parsedTestReader = useAuth(testReader);
+//  console.log('parsedTestReader: ' + parsedTestReader)
 
   useEffect(() => {
     fetchSubmissionsClient();
@@ -21,8 +25,9 @@ function Dashboard() {
             Something went wrong. Please try again. 
           </div>
         )}
-        <Submissions />
+        <Submissions status="Open" />
       </Wrapper>
+      <BottomButtons />
     </>
   );
 }

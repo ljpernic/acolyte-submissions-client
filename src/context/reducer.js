@@ -3,7 +3,7 @@
 import {
   DELEGATE_SUCCESS,
   DELEGATE_ERROR,
-  SET_READER,
+  LOGIN_READER,
   LOGOUT_READER,
   SET_LOADING,
   FETCH_SUBMISSIONS_SUCCESS,
@@ -24,7 +24,7 @@ const reducer = (state, action) => {
     return { ...state, isLoading: true, showAlert: false, verarbeitenComplete: false }
   }
 
-  // ADD READER REDUCER //
+  // DELEGATE REDUCER //
   if (action.type === DELEGATE_SUCCESS) {
     return {
       ...state,
@@ -42,7 +42,7 @@ const reducer = (state, action) => {
   }
 
   // LOGIN AND LOGOUT REDUCER // 
-  if (action.type === SET_READER) {
+  if (action.type === LOGIN_READER) {
     return { ...state, reader: action.payload }
   }
   if (action.type === LOGOUT_READER) {

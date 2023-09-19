@@ -8,7 +8,7 @@ import {                                                                        
   DELEGATE_SUCCESS,
   DELEGATE_ERROR,
   LOGOUT_READER,
-  SET_READER,
+  LOGIN_READER,
   FETCH_SUBMISSIONS_SUCCESS,
   FETCH_SUBMISSIONS_ERROR,
   CREATE_SUBMISSION_SUCCESS,
@@ -43,7 +43,7 @@ const AppProvider = ({ children }) => {                                       //
     dispatch({ type: SET_LOADING })
   }
 
-  // ADD READER //
+  // DELEGATE //
   const delegate = async (readerInput) => {                                    // Establishes readerInput as data to be passed in,
     setLoading()
     try {
@@ -51,7 +51,8 @@ const AppProvider = ({ children }) => {                                       //
         ...readerInput,
       })
 //      console.log(`client/src/context/appContext.js, data from delegate: ` + JSON.stringify(data))          // Shows what data is visible on the client side.
-      dispatch({ type: DELEGATE_SUCCESS, payload: data.reader.name })    // If it works, it sets the name variable of the reader,
+      const delegatePayload = [data.reader.name]
+      dispatch({ type: DELEGATE_SUCCESS, payload: delegatePayload })    // If it works, it sets the name variable of the reader,
       localStorage.setItem(                                                 //// puts it in the local browser storage, and
         'reader',
         JSON.stringify({ name: data.reader.name, token: data.token })         //// stringifies it together with the token.
@@ -65,7 +66,6 @@ const AppProvider = ({ children }) => {                                       //
   const login = async (readerInput) => {                                      // Establishes readerInput as data to be passed in,
     setLoading()
     try {
-//      console.log(`server-side login data, appContext:` + JSON.stringify(readerInput))
       const { data } = await axios.post(`api/v1/auth/login`, {                    //// set up to be what the reader posts through /auth/login.
         ...readerInput,
       })
@@ -156,7 +156,7 @@ const AppProvider = ({ children }) => {                                       //
     const reader = localStorage.getItem('reader')
     if (reader) {
       const newReader = JSON.parse(reader)
-      dispatch({ type: SET_READER, payload: newReader.name })
+      dispatch({ type: LOGIN_READER, payload: newReader.name })
     }
   }, [])
   return (
