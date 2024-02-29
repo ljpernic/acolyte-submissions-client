@@ -1,11 +1,12 @@
-//////// THIS IS THE DELEGATE PAGE. ////////
+//////// PAGE
+//////// FORM TO ADD READER (EIC ONLY). ////////
 
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
 import { Redirect } from 'react-router-dom';
 import FormRow from '../components/FormRow';
-import logo from '../assets/logo.svg';
+import florian from '../assets/FlorianBG_Acolyte_Logo_PNG_TINY.png';
 import useAuth from '../hooks/useAuth.js';
 
 function Delegate() {
@@ -14,11 +15,11 @@ function Delegate() {
     email: '',
     password: '',
     role: '',
-    changeLink: ['/delegate', '/dashboard'],
+    changeLink: ['/delegate', '/dashboard-claimed'],
     isMember: false,
   });
 
-  const { decodedName, isEIC } = useAuth();
+  const { isEIC } = useAuth();
 
   const { reader, delegate, login, isLoading, showAlert } = useGlobalContext();
   const toggleMember = () => {
@@ -31,7 +32,7 @@ function Delegate() {
     e.preventDefault();
       if (isEIC === true){
         const { name, email, password, role, changeLink, isMember } = values;
-        setValues({ ...values, changeLink: ['/dashboard', '/delegate'] });
+        setValues({ ...values, changeLink: ['/dashboard-claimed', '/delegate'] });
         if (isMember) {
           login({ email, password });
         } else {
@@ -56,7 +57,7 @@ function Delegate() {
             </div>
           )}
           <form className='form' onSubmit={onSubmit}>
-            <img src={logo} alt='Acolyte Submission System' className='logo' />
+            <img src={florian} alt='Acolyte Submission System' className='logo' />
             <h4>{values.isMember ? 'Login' : 'Delegate'}</h4>
             {/* name field */}
             {!values.isMember && (
@@ -83,6 +84,19 @@ function Delegate() {
               value={values.password}
               handleChange={handleChange}
             />
+            <div className='form-row'>
+              {(
+                <label htmlFor={values.name} className='form-label'>         {/* Makes sure the label is keyed to the name value. */}
+                  <strong>Role</strong>                                              {/* Displays that name value dynamically. */}
+                </label>
+              )}
+            <select name="role" onChange={handleChange} className='form-input'>
+              <option value=""></option>
+              <option value="associateEditor">Associate Editor</option>
+              <option value="assistantEditor">Assistant Editor</option>
+              <option value="EIC">Editor-in-Chief</option>
+            </select>
+          </div>
             <FormRow
               type='role'
               name='role'
@@ -97,17 +111,6 @@ function Delegate() {
             >
               {isLoading ? 'Fetching Delegate...' : 'Submit'}
             </button>
-            <p>
-              {values.isMember ? 'Not a member yet?' : 'Already a member?'}
-
-              <button
-                type='button'
-                onClick={toggleMember}
-                className='member-btn'
-              >
-                {values.isMember ? 'Delegate' : 'Login'}
-              </button>
-            </p>
           </form>
         </div>
       </Wrapper>

@@ -1,33 +1,30 @@
-//////// RETURNS OPEN SUBMISSIONS FOR LOGGED-IN READER ////////
+//////// COMPONENT
+//////// RETURNS UNCLAIMED SUBMISSIONS FOR LOGGED-IN READER ////////
 
-import { useGlobalContext } from '../context/appContext';                     // Makes useGlobalContext function from appContext available.
+import { useGlobalContext } from '../context/appContext';
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+
 import moment from 'moment';
 import SubmissionColumns from './SubmissionColumns';
 
-// AGGREGATES ALL OPEN SUBMISSIONS ON THE DASHBOARD //
+const SubmissionsUnclaimed = () => {
+  const { submissions, isLoading, assignSubmissionClient } = useGlobalContext();
+  const [claimedSubmissions, setClaimedSubmissions] = useState([]);
+  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1);
 
-const Submissions = (props) => {
-  const { submissions, isLoading } = useGlobalContext();      //Imports submissions and isLoading functions from on useGlobalContext.
-  const itemsPerPage = 5;
-  const [currentPage, setCurrentPage] = useState(1);  
-
-  if (isLoading) {                                            // If the state is isLoading, returns a loading notice.
+if (isLoading) {
     return <div className='loading'></div>;
   }
-  
-  const legitSubmissions = submissions.filter(function(submissionData) {       // Filters all readers by isActive and current story counts.
-    return submissionData.status === props.status;                                       // Creates a new array with only the eligible readers.
-  });
 
-  if (legitSubmissions.length < 1) {                               // If no submissions are found (less than 1), returns a "no submissions" notice.
+  const unclaimedSubmissions = submissions.filter(entry => entry.reader === "unclaimed");
+
+  if (unclaimedSubmissions.length < 1) {
     return (
       <EmptyContainer>
         <h5>
-          Currently, you have no <span>BANANAS </span>
-          to display
+          There are currently <span>NO UNCLAIMED SUBMISSIONS </span> to display
         </h5>
       </EmptyContainer>
     );
@@ -37,44 +34,56 @@ const Submissions = (props) => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
   
-    // Slice the legitSubmissions array to display only the current page
-    const displayedSubmissions = legitSubmissions.slice(startIndex, endIndex);
+    // Slice the oldSubmissions array to display only the current page
+    const displayedSubmissions = unclaimedSubmissions.slice(startIndex, endIndex);
   
-    const totalPages = Math.ceil(legitSubmissions.length / itemsPerPage);
+    const totalPages = Math.ceil(unclaimedSubmissions.length / itemsPerPage);
   
     const handlePageChange = (newPage) => {
       setCurrentPage(newPage);
     };
 
-  return (                                                               // Otherwise, it returns all of the submissions found. 
+    const theCurrentReader = localStorage.getItem('reader')
+    const theCurrentReaderDetails = JSON.parse(theCurrentReader)
+    const theCurrentReaderId = theCurrentReaderDetails.readerId;
+
+    const handleAssignSubmission = async (submissionId, reader) => {
+      try {
+        await assignSubmissionClient(submissionId, reader);
+        setClaimedSubmissions((prevClaimed) => [...prevClaimed, submissionId]); 
+      } catch (error) {
+        console.error('Error assigning submission:', error);
+      } 
+    };
+
+  return ( 
     <>
-      <SubmissionColumns />                                              {/* Using the SubmissionColumns component to display them. */}
+      <SubmissionColumns /> 
       <Container>
-        {displayedSubmissions.map((item) => {                                     // And a map of all of the submissions, with each corresponding to an "item" array
-          const { _id: id, name, title, type, wordCount, status, createdAt } = item;     //// that contains id, name, email etc.
-          let date = moment(createdAt);                                  // Sets the date variable to equal the createdAt value
-//          var modDate = moment(updatedAt);          
-          date = date.format('MMMM Do, YYYY');                           //// and then formats it.
-//          modDate = modDate.format('MMMM Do, YYYY');                     //// and then formats it.
-//          console.log(item)
-            // IF STATUS IS OPEN, IT DISPLAYS IT IN THE DASHBOARD. OTHERWISE, IT DOESN'T. //
-          if (item.status === 'Open') {
-          return (
-            <Link key={id} to={`/verarbeiten/${id}`} className='bigButton'>
-              <article>                                {/* Then it returns all of those values, styling it with className 'submission'. */}
+        {displayedSubmissions
+        .map((item) => {
+          const { _id: id, name, title, type, wordCount, status, createdAt } = item;
+          let date = moment(createdAt);
+          date = date.format('MMMM Do, YYYY');
+          if (item.status) {
+            const isClaimed = claimedSubmissions.includes(id);
+            return (
+            <div key={id} onClick={() => handleAssignSubmission(id, theCurrentReaderId)} className={`bigButton ${isClaimed ? 'claimed' : ''}`}>
+              <article> 
                 <div className='submission'>
                 <span className='position'>{title}</span>
                 <span className='position'>{name}</span>
-                <span className='centerPosition'>{wordCount}</span>
-                <StatusContainer className='status' status={status}>            {/* Sets the colored box (styled with className='status') based on the status value. */}
-                  {status}                                                      {/* The actual text of the status is dynamically inserted here. */}
+                <span className='centerPosition'>{wordCount !== null ? wordCount : 'POEM'}</span>
+                <StatusContainer className='status' status={status}>   
+                  {status}
                 </StatusContainer>
                 <span className='centerPosition'>{type}</span>
                 <span className='date'>{date}</span>
+                {isClaimed && <span className="claimed-label">Claimed</span>}
                 </div>
                 <br />
                 </article>
-              </Link>
+             </div>
            );}
            else {
             return (null);
@@ -82,7 +91,7 @@ const Submissions = (props) => {
         })}
       </Container>
       <Pagination>
-      <div className="paginationCSS"> {/* Replace 'Pagination' with the pagination component */}
+      <div className="paginationCSS">
         {Array.from({ length: totalPages }).map((_, index) => (
           <div
             key={index}
@@ -97,7 +106,7 @@ const Submissions = (props) => {
     </>
   );
 };
-                                                                              // Styles the various containers.
+
 const EmptyContainer = styled.section`
   text-align: center;
   h5 {
@@ -216,6 +225,12 @@ const Container = styled.section`
     justify-content: center;
     gap: 0 0.5rem;
   }
+  .claimed-label {
+    display: flex;
+    font-weight: bold;
+    color: blue;
+  
+  }
 
   @media (min-width: 768px) {
     display: grid;
@@ -293,7 +308,7 @@ const Pagination = styled.section`
   }  
 }
 `;
-                                                                                // Sets the status box colors.
+
 const setStatusColor = (status) => {
   if (status === 'interview') return '#0f5132';
   if (status === 'declined') return '#842029';
@@ -313,4 +328,4 @@ const StatusContainer = styled.span`
   color: ${(props) => setStatusColor(props.status)};
   background: ${(props) => setStatusBackground(props.status)};
 `;
-export default Submissions;
+export default SubmissionsUnclaimed;

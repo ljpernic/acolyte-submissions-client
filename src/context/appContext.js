@@ -1,14 +1,18 @@
-//////// DOES THINGS SELECTIVELY BASED ON THE PAGE STATE -- CONTEXT PASSED IN TO OTHER PAGES ////////
+//////// CONTEXT
+//////// PASSES CONTEXT TO PAGES BASED ON PAGE STATE ////////
 
 import axios from 'axios'
 import '../axios'
-import React, { useContext, useEffect, useReducer } from 'react'                // Imports functions from react.
-import {                                                                        // Imports variables from the actions.js file.
+import React, { useContext, useEffect, useReducer } from 'react'
+import {                                                                        // IMPORTS GLOBAL VALUES SET IN ACTIONS.JS CONTEXT.
   SET_LOADING,
   DELEGATE_SUCCESS,
   DELEGATE_ERROR,
   LOGOUT_READER,
-  LOGIN_READER,
+  LOGIN_READER_SUCCESS,
+  LOGIN_READER_ERROR,
+  PASSWORD_CHANGE_SUCCESS,
+  PASSWORD_CHANGE_ERROR,
   FETCH_SUBMISSIONS_SUCCESS,
   FETCH_SUBMISSIONS_ERROR,
   CREATE_SUBMISSION_SUCCESS,
@@ -16,15 +20,15 @@ import {                                                                        
   DELETE_SUBMISSION_ERROR,
   FETCH_SINGLE_SUBMISSION_SUCCESS,
   FETCH_SINGLE_SUBMISSION_ERROR,
-  DOWNLOAD_SUBMISSION_SUCCESS,
-  DOWNLOAD_SUBMISSION_ERROR,
   VERARBEITEN_SUBMISSION_SUCCESS,
   VERARBEITEN_SUBMISSION_ERROR,
+  UPDATE_READER_SUCCESS,
+  UPDATE_READER_ERROR,
 } from './actions'
-import reducer from './reducer'                                                // Imports reducer function from the reducer.js file.
+import reducer from './reducer'                                                // IMPORTS REDUCERS.
 
-const initialState = {                                                         // Sets initial state values of the app, with everything turned off 
-  reader: null,                                                                //// and no one logged in.
+const initialState = {                                                         // INITIAL VALUES OF FALSE, NULL, AND []
+  reader: null,
   role: null,
   isLoading: false,
   submissions: [],
@@ -34,66 +38,97 @@ const initialState = {                                                         /
   singleSubmissionError: false,
   verarbeitenComplete: false,
 }
-const AppContext = React.createContext()                                      // Let's you create new context to overwrite the initial state.
+const AppContext = React.createContext()                                      // ALLOWS CREATION OF APPCONTEXT.
 
-const AppProvider = ({ children }) => {                                       // Umbrella function containing all of the other functions (delegate, login, etc)
+const AppProvider = ({ children }) => {                                       // FUNCTION TO CARRY OUT INDIVIDUAL SUB-FUNCTIONS (FETCH SUBS, LOG IN, ETC).
   const [state, dispatch] = useReducer(reducer, initialState)
 
   const setLoading = () => {
     dispatch({ type: SET_LOADING })
   }
 
-  // DELEGATE //
-  const delegate = async (readerInput) => {                                    // Establishes readerInput as data to be passed in,
+//
+// ADD READER
+//
+//// NOTE: I THINK THE DELEGATE FUNCTION IS WRONG ***.
+//// WHY IS IT SETTING THE READER IN THE LOCAL STORAGE? THAT SEEMS WRONG?
+                                                                              // ADD NEW READER. //
+  const delegate = async (readerInput) => {                                   // QUEUES UP READER INPUT FROM FORM.
     setLoading()
     try {
-      const { data } = await axios.post(`api/v1/auth/delegate`, {                  //// set up to be what the reader posts through /auth/delegate. 
+      const { data } = await axios.post(`api/v1/auth/delegate`, {             // POSTS INPUT FROM FORM TO /AUTH/DELEGATE.
         ...readerInput,
       })
-//      console.log(`client/src/context/appContext.js, data from delegate: ` + JSON.stringify(data))          // Shows what data is visible on the client side.
       const delegatePayload = [data.reader.name]
-      dispatch({ type: DELEGATE_SUCCESS, payload: delegatePayload })    // If it works, it sets the name variable of the reader,
-      localStorage.setItem(                                                 //// puts it in the local browser storage, and
+      dispatch({ type: DELEGATE_SUCCESS, payload: delegatePayload })          // IF SUCCESSFUL, SETS NAME VARIABLE OF READER AS PAYLOAD.
+      localStorage.setItem(                                                   // CREATES LOCALSTORAGE READER WITH READER NAME AND TOKEN. 
         'reader',
-        JSON.stringify({ name: data.reader.name, token: data.token })         //// stringifies it together with the token.
+        JSON.stringify({ name: data.reader.name, token: data.token })
       )
-      } catch (error) {                                                       //// Otherwise, it throws an error.
-      dispatch({ type: DELEGATE_ERROR })
+      } catch (error) {
+       dispatch({ type: DELEGATE_ERROR, payload: { error: 'Your error message here' } });
     }
   }
 
-  // LOGIN
-  const login = async (readerInput) => {                                      // Establishes readerInput as data to be passed in,
+//
+// CHANGE PASSWORD
+//
+
+const passwordChange = async ({ email, password, newPassword }) => {
+  setLoading();
+  try {
+    const { data } = await axios.post(`api/v1/auth/change-password`, {
+      email,
+      password,
+      newPassword,
+    })
+    const changePasswordPayload = [data.reader] 
+    dispatch({ type: PASSWORD_CHANGE_SUCCESS, payload:changePasswordPayload })
+  } catch (error) {
+    console.error('Password change error:', error);
+    dispatch({ type: PASSWORD_CHANGE_ERROR });
+  }
+};
+
+//
+// LOGIN
+//
+
+  const login = async (readerInput) => {
     setLoading()
     try {
-      const { data } = await axios.post(`api/v1/auth/login`, {                    //// set up to be what the reader posts through /auth/login.
+      const { data } = await axios.post(`api/v1/auth/login`, {
         ...readerInput,
       })
-//      console.log(`client/src/context/appContext.js, data from login: ` + JSON.stringify(data))          // Shows what data is visible on the client side.
-      const loginPayload = [data.reader.name]                               // The reason role isn't working is because it isn't in the login data.
-      dispatch({ type: DELEGATE_SUCCESS, payload: loginPayload })         // If it works, it sets the name variable of the reader, 
-      localStorage.setItem(                                                 //// puts it in the local browser storage, and
+      const loginPayload = [data.reader.name]  
+      dispatch({ type: LOGIN_READER_SUCCESS, payload: loginPayload })
+      localStorage.setItem( 
         'reader',
-        JSON.stringify({ name: data.reader.name, token: data.token }),         //// stringifies it together with the token.
-        ) 
-//        console.log(`context/AppContext.js, login, localStorage reader:` + JSON.stringify(data))
-    } catch (error) {                                                       //// Otherwise, it throws an error.
-      dispatch({ type: DELEGATE_ERROR })
+        JSON.stringify({ name: data.reader.name, readerId: data.reader.readerId, token: data.token }),
+        )
+      } catch (error) {
+      dispatch({ type: LOGIN_READER_ERROR })
     }
   }
 
-  // LOGOUT
-  const logout = () => {                                                    // Removes the reader data.
+//
+// LOGOUT
+//
+
+  const logout = () => {
     localStorage.removeItem('reader')
     dispatch({ type: LOGOUT_READER })
   }
+
+//
+// FETCH ALL SUBMISSIONS
+//
 
   // FETCH SUBMISSIONS
   const fetchSubmissionsClient = async () => {
     setLoading()
     try {
       const { data } = await axios.get(`api/v1/submissions`)
-//      console.log(`context/appContext, fetchSubmissionsClient, Data.submissions:` + JSON.stringify(data.submissions))
       dispatch({ type: FETCH_SUBMISSIONS_SUCCESS, payload: data.submissions })
     } catch (error) {
       dispatch({ type: FETCH_SUBMISSIONS_ERROR })
@@ -101,21 +136,27 @@ const AppProvider = ({ children }) => {                                       //
     }
   }
 
-    // CREATE SUBMISSION
+//
+// CREATE SUBMITTED
+//
+
     const createSubmittedClient = async (submitterInput) => {
       setLoading()
       try {
         const { data } = await axios.post(`api/v1/submitted`, {
           ...submitterInput,
         })
-//        console.log(`data.submissions from context/appContext.js` + JSON.stringify(data.submission))
         dispatch({ type: CREATE_SUBMISSION_SUCCESS, payload: data.submission })
+        return data.submission;
       } catch (error) {
         dispatch({ type: CREATE_SUBMISSION_ERROR })
       }
     }
-   
-      // DELETE SUBMISSION //
+
+//
+// DELETE SUBMISSION
+//
+
   const deleteSubmissionClient = async (submissionId) => {
     setLoading()
     try {
@@ -126,8 +167,10 @@ const AppProvider = ({ children }) => {                                       //
     }
   }
 
-  // TO DO: Figure out which functions are actually being used (are there two fetch submission functions?)
-  // FETCH SUBMISSION //
+//
+// FETCH SINGLE SUBMISSION
+//
+  
   const fetchSingleSubmission = async (submissionId) => {
     setLoading()
     try {
@@ -139,7 +182,10 @@ const AppProvider = ({ children }) => {                                       //
     }
   }
 
-  // VERARBEITEN (PROCESS) SUBMISSION //
+//
+// UPDATE AND VERARBEITEN SUBMISSION
+//
+
   const verarbeitenSubmissionClient = async (submissionId, readerInput) => {
     setLoading()
     try {
@@ -152,11 +198,67 @@ const AppProvider = ({ children }) => {                                       //
     }
   }
 
+//
+// CLAIM SUBMISSION
+//
+
+  const assignSubmissionClient = async (submissionId, reader) => {
+    setLoading()
+    try {
+      // FIND CURRENT READER ID
+      const { data } = await axios.patch(`api/v1/submissions/claim/${submissionId}`, {
+        submissionId,
+        reader,
+      }, {
+        headers: {
+          'If-Modified-Since': new Date(0),  // Disable If-Modified-Since
+          'If-None-Match': '*',      // Disable If-None-Match
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+        },
+      })
+      dispatch({ type: UPDATE_READER_SUCCESS, payload: data.submission });
+//      console.log('payload:' + JSON.stringify(data.submission))
+    } catch (error) {
+      console.error("Error updating submission:", error);
+      dispatch({ type: UPDATE_READER_ERROR });
+    }
+  };
+
+//
+// UNCLAIM SUBMISSION
+//
+
+    const unAssignSubmissionClient = async (submissionId) => {
+  setLoading();
+    try {
+      const { data } = await axios.patch(`api/v1/submissions/unclaim/${submissionId}`, {
+        submissionId,
+        reader: "unclaimed",  // Set the reader field to "unclaimed"
+      }, {
+        headers: {
+          'If-Modified-Since': new Date(0),
+          'If-None-Match': '*',
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+        },
+      });
+      dispatch({ type: UPDATE_READER_SUCCESS, payload: data.submission });
+    } catch (error) {
+      console.error("Error updating submission:", error);
+      dispatch({ type: UPDATE_READER_ERROR });
+    }
+  };
+
+//
+// USEEFFECT
+//
+
   useEffect(() => {
     const reader = localStorage.getItem('reader')
     if (reader) {
       const newReader = JSON.parse(reader)
-      dispatch({ type: LOGIN_READER, payload: newReader.name })
+      dispatch({ type: LOGIN_READER_SUCCESS, payload: newReader.name })
     }
   }, [])
   return (
@@ -167,11 +269,14 @@ const AppProvider = ({ children }) => {                                       //
         delegate,
         login,
         logout,
+        passwordChange,
         fetchSubmissionsClient,
         createSubmittedClient,
         deleteSubmissionClient,
         fetchSingleSubmission,
         verarbeitenSubmissionClient,
+        assignSubmissionClient,
+        unAssignSubmissionClient,
 //        rejectSubmissionClient,
       }}
     >

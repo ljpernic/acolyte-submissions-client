@@ -1,13 +1,13 @@
-//////// SETS STRUCTURE OF FORM ROWS ////////
+//////// COMPONENT
+//////// FORM ROW, GENERIC ////////
 
 import React from 'react';
 
 const FormRow = ({
-  type,                                                       // Sets key pair values?
+  type,
   name,
   value,
   accept,
-  status,
   handleChange,
   horizontal,
   placeholder,
@@ -15,18 +15,17 @@ const FormRow = ({
   return (
     <div className='form-row'>
       {!horizontal && (
-        <label htmlFor={name} className='form-label'>         {/* Makes sure the label is keyed to the name value. */}
-          <strong>{name}</strong>                                              {/* Displays that name value dynamically. */}
+        <label htmlFor={name} className='form-label'>         {/* KEYS LAVEL TO NAME VALUE */}
+          <strong>{name}</strong>                             {/* DYNAMICALLY DISPLAYS NAME */}
         </label>
       )}
       <input
-        type={type}                                           // Keys input value to dynalically generated value
+        type={type}                                           // DYNAMICALLY GENERATED INPUT VALUES
         value={value}
         name={name}
         accept={accept}
         onChange={handleChange}
         className='form-input'
-//        readOnly={status != "Open"}
         placeholder={placeholder}
       />
     </div>

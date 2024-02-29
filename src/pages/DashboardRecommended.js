@@ -1,33 +1,32 @@
-//////// THIS IS THE DASHBOARD AFTER LOGGING IN. ////////
+//////// PAGE
+//////// DASHBOARD SHOWING ALREADY RECOMMENDED STORIES (EIC ONLY). ////////
 
 import { useEffect } from 'react';
 import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
 import Navbar from '../components/Navbar';
-import BottomButtons from '../components/BottomButtons';
-import Submissions from '../components/Submissions';
+import ButtonsBottom from '../components/ButtonsBottom';
+import SubmissionsCombined from '../components/SubmissionsCombined';
 
-function Dashboard() {
+function DashboardRecommended() {
   const { showAlert, fetchSubmissionsClient } = useGlobalContext();
-
-//  const parsedTestReader = useAuth(testReader);
-//  console.log('parsedTestReader: ' + parsedTestReader)
 
   useEffect(() => {
     fetchSubmissionsClient();
   }, []);
   return (
     <>
-      <Navbar />                                                                {/* Inserts the navbar on the top of the dashboard*/}                                  
-      <Wrapper className='page'>                                                {/* Wraps the form fields so that they're styled with 'page' */}
+      <Navbar />
+      <Wrapper className='page'>
         {showAlert && (
           <div className='alert alert-danger'>
             Something went wrong. Please try again. 
           </div>
         )}
-        <Submissions status="Open" />
+        {console.log("Rec triggered.")}
+        <SubmissionsCombined dashboardType="recommended" />
       </Wrapper>
-      <BottomButtons />
+      <ButtonsBottom />
     </>
   );
 }
@@ -72,4 +71,4 @@ const Wrapper = styled.section`
   }
 `;
 
-export default Dashboard;
+export default DashboardRecommended;

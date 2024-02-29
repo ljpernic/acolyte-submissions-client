@@ -1,18 +1,15 @@
 //////// COMPONENT
-//////// FORM ROW FOR DASHBOARD TO EDIT SUBMISSION DETAILS IN DB ////////
+//////// FORM ROW FOR USER-PROVIDED COVER LETTER ////////
 
 import React from 'react';
 
-const FormRowVerarbeiten = ({
-  type,
+const FormRowTextArea = ({
   name,
   value,
   accept,
-  status,
   handleChange,
   horizontal,
   placeholder,
-  isEIC,
 }) => {
   return (
     <div className='form-row'>
@@ -21,19 +18,17 @@ const FormRowVerarbeiten = ({
           <strong>{name}</strong>
         </label>
       )}
-      <input
-        type={type}
+      <textarea
+        rows={5}                                // SETS NUMBER OF LINES IN COVER LETTER INPUT BOX
         value={value}
         name={name}
         accept={accept}
         onChange={handleChange}
         className='form-input'
-        readOnly={status !== "Open" || (status === "Open" && !isEIC)}
         placeholder={placeholder}
       />
     </div>
   );
-  
 };
 
-export default FormRowVerarbeiten;
+export default FormRowTextArea;

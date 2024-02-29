@@ -1,3 +1,6 @@
+//////// PAGE
+//////// THANK YOU PAGE. ONCE A SUBMISSION IS RECEIVED, THE SUBMITTED IS REDIRECTED HERE. ////////
+
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';

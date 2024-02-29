@@ -1,39 +1,47 @@
-//////// THIS IS THE HOME PAGE. WHEN YOU NAVIGATE TO THE URL, THIS IS WHAT YOU SEE. ////////
+//////// PAGE
+//////// HOME PAGE. WHAT YOU SEE WHEN YOU NAVIGATE TO THE WEBSITE. ////////
 
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import main from '../assets/main.svg';
-import { useGlobalContext } from '../context/appContext';
-import { Redirect } from 'react-router-dom';
-import logo from '../assets/logo.svg';
+import florian from '../assets/FlorianBG_Acolyte_Logo_PNG.png';
+
 function Home() {
-  const { reader } = useGlobalContext();
-  const readerArray = []
+
   return (                                                                           //// STARTS WITH INITIAL STATE DEFINED IN APP/APPCONTEXT.JS, WITH EVERYTHING FALSE, EMPTY, NULL.
     <>
-      {/* {console.log(`client/src/context/Home.js, global context reader data: ` + reader)}
-      {Array.isArray(reader) ? readerArray.push(reader[0], reader[1]) : void(0)}
-      {readerArray[1] === 'EIC' ? readerArray[0] && <Redirect to='/dashboard' /> : readerArray[0] && <Redirect to='/dashboard' /> } */}
-{/*      {reader && <Redirect to='/dashboard' />}     */}                                  {/*///// BUT IF SOMEONE IS LOGGED IN, REDIRECTS TO DASHBOARD. */}                           
       <Wrapper>
-        <nav>
-          <img src={logo} alt='acolyte submissions app' />
-        </nav>
         <div className='container page'>
+<div>
+        <img 
+          src={florian} 
+          alt="Florian, mascot and logo of the Acolyte Submission System"
+          style={{ width: '100%', height: 'auto' }}
+        />
+        </div>
           <div className='info'>
-            <h1>Submissions app</h1>
-            <p>
-              This is the home page of the submission app. The content that we might imagine here would include something about the project, maybe other projects 
-              that are using this submission system, a logo or two, how-tos and guides, etc. Plus probably something that lets you log in to your specific magazine.
+            <h1>Acolyte Submissions System</h1>
+            <p style={{'fontSize':'1.2em'}}>
+              Welcome to the Acolyte Submissions System! This open-source app will soon handle all of Haven Spec Magazine's submissions. It will 
+              also be freely available to any other magazine that might want to implement it for themselves. It's been years in the making, and 
+              it's really going to streamline our workflow so that we can spend more time reading stories and poems! 
             </p>
-            <Link to='/form' className='btn hero-btn'>
-              Form
+            <p style={{'fontSize':'1.2em'}}>
+              Like the submission system's logo? His name is Florian, and he was designed 
+              by the amazing artist <a href="https://www.haleygrunloh.com/">Haley Grunloh</a>!
+            </p>
+            <Link to='/form-fiction' className='btn-home hero-btn-home'>
+              Submit Fiction
             </Link><br /><br />
-            <Link to='/login' className='btn hero-btn'>
+            <Link to='/form-poetry' className='btn-home hero-btn-home'>
+              Submit Poetry
+            </Link><br /><br />
+            <Link to='/form-nonfiction' className='btn-home hero-btn-home'>
+              Submit Non-fiction
+            </Link><br /><br />
+            {/* <Link to='/login' className='btn hero-btn'>
               Login
-              </Link><br /><br />
+              </Link><br /><br /> */}
           </div>
-          <img src={main} alt='submissions' className='img main-img' />
         </div>
       </Wrapper>
     </>

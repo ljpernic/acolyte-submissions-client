@@ -1,14 +1,13 @@
-//////// SETS WRAPPER FOR ALL SUBMISSIONS FOR LOGGED-IN READER ////////
+//////// COMPONENT
+//////// SETS COLUMN HEADERS FOR DASHBOARDS ////////
 
 import React from 'react';
 import styled from 'styled-components';
 
-// Column headers on the dashboard // 
-
 const SubmissionColumns = () => {
   return (
     <Wrapper>
-      <span>Title</span>                                         {/* The actual words at the top of each column.  */}
+      <span>Title</span>                                         {/* LITERAL COLUMN HEADERS. */}
       <span>Name</span>
       <span className="centerPosition">Word Count</span>
       <span className="centerPosition">Status</span>
@@ -18,7 +17,6 @@ const SubmissionColumns = () => {
   );
 };
 
-                                                                // Styles the wrapper itself. Why isn't this in a css file?
 const Wrapper = styled.section`
   display: none;
   @media (min-width: 992px) {

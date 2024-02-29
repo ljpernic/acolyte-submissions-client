@@ -1,16 +1,17 @@
-//////// COMPONENT FOR THE NAVBAR VISIBLE FOR LOGGED-IN READER ////////
+//////// COMPONENT
+//////// HEADER FOR LOGGED-IN READERS ////////
 
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import logo from '../assets/logo.svg';
+import florian from '../assets/FlorianBG_Acolyte_Logo_PNG_TINY.png';
 import { FaUserCircle, FaCaretDown } from 'react-icons/fa';
 import { useGlobalContext } from '../context/appContext';
 import { Link } from 'react-router-dom';
 import useAuth from '../hooks/useAuth.js';
 
 const Navbar = () => {
-  const { reader, logout } = useGlobalContext();                                      // Sets the reader and logout constants with useGlobalContext.
-  const [showLogout, setShowLogout] = useState(false);                                // Sets showLogout based on useState.
+  const { reader, logout } = useGlobalContext();
+  const [showLogout, setShowLogout] = useState(false);
 
   const { decodedName, topStatus } = useAuth();
 
@@ -18,22 +19,27 @@ const Navbar = () => {
     <Wrapper>
       <div className='nav-center'>
         <div>  
-          <Link to={!reader ? '/' : '/dashboard'}>
-            <img src={logo} alt='Acolyte banana system' />                            {/* Shows logo in the navbar. */}
+          <Link to={!reader ? '/' : '/dashboard-claimed'}>
+          <img 
+          src={florian} 
+          alt="Florian, mascot and logo of the Acolyte Submission System"
+          style={{ width: '100%', height: 'auto', marginTop: '30px' }}
+        />
           </Link>
         </div>
-        <div>
+        <div className='reader-header'>
           {topStatus}          
         </div>
-        {reader && (                                                                    // 
-          <div className='btn-container'>                                             {/* inserts it into a button container, */}
-            <button className='btn' onClick={() => setShowLogout(!showLogout)}>       {/* which, when clicked, shows the logout button. */}
-              <FaUserCircle />                                                        {/* It includes a circle icon to indicate it's a user, */}
-              {decodedName}                                                                  {/* the reader name itself, and */}
-              <FaCaretDown />                                                         {/* a down arrow to indicate that it can be clicked.*/}
+                                                                                      {/* IF READER EXISTS, DISPLAYS */}
+        {reader && (    
+          <div className='btn-container'>                                             {/* DIV STYLED AS BUTTON. */}
+            <button className='btn' onClick={() => setShowLogout(!showLogout)}>       {/* WHEN BUTTON IS CLICKED, SHOWS LOGOUT OPTION. */}
+              <FaUserCircle />                                                        {/* ICON SHOWS IT'S A READER. */}
+              {decodedName}                                                           {/* READER NAME SET DYNAMICALLY THROUGH USEAUTH(). */}
+              <FaCaretDown />                                                         {/* DOWN ARROW FOR STYLE. */}
             </button>
-            <div className={showLogout ? 'dropdown show-dropdown' : 'dropdown'}>      {/* It also changes how it looks depending on if it has been clicked, */}
-              <button onClick={() => logout()} className='dropdown-btn'>              {/* with the logout functionality triggering when it is clicked.*/}
+            <div className={showLogout ? 'dropdown show-dropdown' : 'dropdown'}>      {/* SHOWS LOGOUT DIV. */}
+              <button onClick={() => logout()} className='dropdown-btn'>              {/* LOGS THE USER OUT.*/}
                 logout
               </button>
             </div>
@@ -90,6 +96,10 @@ const Wrapper = styled.nav`
     letter-spacing: var(--letterSpacing);
     text-transform: capitalize;
     cursor: pointer;
+  }
+  .reader-header {
+    font-size: 3em;
+    color: var(--primary-700);
   }
 `;
 

@@ -1,22 +1,47 @@
-//////// COMPONENT FOR THE EDITOR BUTTONS VISIBLE FOR LOGGED-IN READER ////////
+//////// COMPONENT 
+//////// BOTTOM ROW OF DASHBOARD BUTTONS
 
-import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import useAuth from '../hooks/useAuth.js';
 
-const BottomButtons = () => {
+const ButtonsBottom = () => {
 
   const { isEIC } = useAuth();
 
   return (
     <Wrapper>
       <div className='nav-center'>
+                                                                                    {/* ADD READER BUTTON */}
         {(isEIC) && <div>  
           <Link to='/delegate' className='btn hero-btn'>
               Add reader
             </Link>
         </div>}
+                                                                                    {/* RECOMMENDED DASHBOARD BUTTON */}        
+        {(isEIC) && <div>  
+          <Link to='/dashboard-recommended' className='btn hero-btn'>
+              Recommended
+            </Link>
+        </div>}
+                                                                                    {/* CLAIMED DASHBOARD BUTTON */}
+        <div>  
+          <Link to='/dashboard-claimed' className='btn hero-btn'>
+              Current Queue
+            </Link>
+        </div>
+                                                                                    {/* PROCESSED DASHBOARD BUTTON */}
+        <div>  
+          <Link to='/dashboard-old' className='btn hero-btn'>
+              Old Queue
+            </Link>
+        </div>
+                                                                                    {/* UNCLAIMED DASHBOARD BUTTON */}
+        <div>  
+          <Link to='/dashboard-unclaimed' className='btn hero-btn'>
+              Open Queue
+            </Link>
+        </div>
       </div>
     </Wrapper>
   );
@@ -71,4 +96,4 @@ const Wrapper = styled.nav`
   }
 `;
 
-export default BottomButtons;
+export default ButtonsBottom;

@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import { Home, Dashboard, Login, Form, Delegate, Verarbeiten, Error, Submitted, PrivateRoute } from './pages';
-import Navbar from './components/Navbar';
+import { Home, DashboardClaimed, DashboardRecommended, DashboardUnclaimed, DashboardOld, Login, PasswordChange, FormFiction, FormPoetry, FormNonfiction, Delegate, Verarbeiten, Error, Submitted, PrivateRoute } from './pages';
 
 function App() {
   return (
@@ -9,21 +8,39 @@ function App() {
         <Route path='/' exact>
           <Home />
         </Route>
-        <PrivateRoute path='/dashboard'>
-          <Dashboard />
+        <PrivateRoute path='/dashboard-claimed'>
+          <DashboardClaimed />
+        </PrivateRoute>
+        <PrivateRoute path='/dashboard-recommended'>
+          <DashboardRecommended />
+        </PrivateRoute>
+        <PrivateRoute path='/dashboard-unclaimed'>
+          <DashboardUnclaimed />
+        </PrivateRoute>
+        <PrivateRoute path='/dashboard-old'>
+          <DashboardOld />
         </PrivateRoute>
         <Route path='/login'>
           <Login />
         </Route>
-        <Route path='/form'>
-          <Form />
+        <Route path='/form-fiction'>
+          <FormFiction />
+        </Route>
+        <Route path='/form-poetry'>
+          <FormPoetry />
+        </Route>        
+        <Route path='/form-nonfiction'>
+          <FormNonfiction />
         </Route>
         <Route path='/submitted'>
           <Submitted />
         </Route>
-        <Route path='/delegate'>
+        <PrivateRoute path='/delegate'>
           <Delegate />
-        </Route>
+        </PrivateRoute>
+        <PrivateRoute path='/change-password'>
+          <PasswordChange />
+        </PrivateRoute>
         <Route path='/verarbeiten/:id'>
           <Verarbeiten />
         </Route>

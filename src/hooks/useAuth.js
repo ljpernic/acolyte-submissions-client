@@ -1,13 +1,14 @@
+//////// HOOK
+//////// CHECKS IF LOGGED-IN READER IS AUTHORIZED
+
 import jwtDecode from 'jwt-decode'
 
 const useAuth = () => {
     const thisReader = localStorage.getItem('reader');
-//    console.log('useAuth thisReader: '+ thisReader)
 
     if(thisReader !== null) {
         const thisReaderObject = JSON.parse(thisReader);
         const thisToken = thisReaderObject.token;
-//        console.log('useAuth thisToken: '+ thisToken)
 
         let isEIC = false;
         let isAssistant = false;
@@ -23,15 +24,9 @@ const useAuth = () => {
         isAssistant = decodedRole.includes('assistantEditor')
         isAssociate = decodedRole.includes('associateEditor')
     
-//            console.log('useAuth isEIC: ' + isEIC)
-//            console.log('useAuth isAssistant: ' + isAssistant)
-//            console.log('useAuth isAssociate: ' + isAssociate)
-
-        if (isEIC) topStatus = 'EIC submissions'
+        if (isEIC) topStatus = 'EIC Queue'
         if (isAssistant) topStatus = 'Assistant Editor'
         if (isAssociate) topStatus = 'Associate Editor'
-
-//            console.log('useAuth topStatus: ' + topStatus)
 
         return { decodedName, decodedRole, topStatus, isEIC, isAssistant, isAssociate}
             }
@@ -40,7 +35,3 @@ const useAuth = () => {
 } 
 export default useAuth
 
-
-
-
-//   }

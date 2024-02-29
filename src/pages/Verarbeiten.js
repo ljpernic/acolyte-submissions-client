@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useParams, Redirect, Link } from 'react-router-dom';
+import { useParams, Redirect, Link, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
 import FormRowVerarbeiten from '../components/FormRowVerarbeiten';
 import Navbar from '../components/Navbar';
-import TierHigh from '../components/TierHigh';
-import TierMiddle from '../components/TierMiddle';
-import TierLow from '../components/TierLow';
-import TierAnon from '../components/TierAnon';
-import TierRec from '../components/TierRec';
+import EmailTierTemplate from '../components/EmailTierTemplate';
+import ButtonsDisplay from '../components/ButtonsDisplay';
+import useAuth from '../hooks/useAuth.js';
+
+//
+//
+////// This is the start of the entire function for sending rejections, updating submissions, and interacting with data on the dashboard.
+//
+//
 
 function Update() {
   const { id } = useParams();
@@ -20,115 +24,266 @@ function Update() {
     reader,
     verarbeitenSubmissionClient,
     verarbeitenComplete,
+    unAssignSubmissionClient,
   } = useGlobalContext();
 
-
-  function hideAndShowStuff(collection, view) {
-    for (
-      var i = 0, len = collection.length; i < len; i++
-    )
-      {
-        collection[i].style["display"] = view;
-      }
-  }
-
+  // SETS CURRENT READER INFO
   const currentReader = useGlobalContext().reader;
 
+  // VERIFIES EIC LOGGED IN FOR SOME FUNCTIONALITY
+  const { isEIC: authIsEIC } = useAuth();
+
+  // SETS INITIAL VALUES
   const [values, setValues] = useState({
     name: '',
     title: '',
     email: '',
     wordCount: '',
+    type: '',
     status: '',
     reader: '',
     readerNote: '',
     coverLetter: '',
   });
 
-  // GETS THE SINGLE SUBMISSION BASED ON ID
+  const [isEIC, setIsEIC] = useState(false);
+
+  const history = useHistory();
+
+
+//
+//
+////// SETS USESTATES FOR SELECTIVELY DISPLAYING EMAIL FORMATS TO READER.
+//
+//
+  const [testShowName, setTestShowName] = useState(false);
+  const [testShowTitle, setTestShowTitle] = useState(false);  
+  const [testShowThankYou, setTestShowThankYou] = useState(false);
+  const [testShowMagazine, setTestShowMagazine] = useState(false);
+  const [testShowUnfortunately, setTestShowUnfortunately] = useState(false);
+  const [testShowInvite, setTestShowInvite] = useState(false);
+  const [testShowSubjective, setTestShowSubjective] = useState(false);
+  const [testShowReaderNote, setTestShowReaderNote] = useState(false);
+  const [testShowRecommend, setTestShowRecommend] = useState(false);
+  const [testShowCoverLetter, setTestShowCoverLetter] = useState(false);  
+  const [testShowReaderName, setTestShowReaderName] = useState(false);  
+  const [componentToShow, setComponentToShow] = useState(null);
+  const [newStatus, setNewStatus] = useState('initial'); 
+  const [displayName, setTestShowDisplayName] = useState('initial display name');  
+//
+//
+////// USE EFFECTS
+//
+//
+  //GETS SINGLE SUBMISSION BASED ON ID
   useEffect(() => {
     fetchSingleSubmission(id);
   }, [id]);
 
+  // HANDLES VALUES FOR UPDATING AND SENDING REJECTIONS.
   useEffect(() => {
     if (verarbeitenItem) {
-      const { name, email, title, wordCount, reader, status, coverLetter, readerNote } = verarbeitenItem;
-      setValues({ name, email, title, wordCount, reader, status, coverLetter, readerNote });
+      const { name, email, title, wordCount, type, reader, status, coverLetter, readerNote } = verarbeitenItem;
+      setValues({ name, email, title, wordCount, type, reader, status, coverLetter, readerNote });
     }
   }, [verarbeitenItem]);
 
+  // CONTROLS EIC AUTHENTICATION BY FETCHING READER INO FROM USEAUTH HOOK
+  useEffect(() => {
+    setIsEIC(authIsEIC);
+  }, [authIsEIC]);
+
+//
+//
+////// HANDLES CHANGE AS YOU TYPE
+//
+//
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
   };
 
-
-
-    // HIDES OR SHOWS ELEMENTS BASED ON CLASS
-  var allElements = document.getElementsByClassName('allTags')
-  let newStatus = values.status;
 //
 //
-// DISPLAY HTML ELEMENTS ON THE RIGHT SIDE WHEN LEFT-SIDE BUTTONS ARE CLICKED
+////// EMAIL ELEMENTS: TEXT FOR REJECTION EMAILS THAT EMAILTIERTEMPLATE COMPONENT SELECTIVELY USES BASED ON WHAT IS DISPLAYED.
 //
 //
-    // EACH OF THESE DISPLAY FUNCTIONS DOES THE FOLLOWING:
-    // --> Hides all elements
-    // --> Sets a value for newStatus (displayUpdate passes the old status through; the others change it to the new status)
-    // --> Displays the top right text and the form submission button 
-  const displayUpdate = (e) => {
-    hideAndShowStuff(allElements, 'none')
-    newStatus = values.status;
-    document.getElementById("updateText").style.display = "block";
-    document.getElementById("verarbeitenButton").style.display = "block";     
-  };
+  const thankYouVerarbeiten = "Thank you for your submission of "
+  const magazineVerarbeiten = "to Haven Spec Magazine. "
+  const unfortunatelyVerarbeiten = "Unfortunately, we've decided to pass on this one, but we wish you the best of luck on your writing and publishing endeavors."
+  const happyVerarbeiten = "We would be happy to consider anything else you might write!"
+  const subjectiveVerarbeiten = "That's just our subjective opinion, of course, but we appreciated the chance to look at your work, and we hope you send us more."
+  const recommendVerarbeiten = "This is just a quick note that we've held this piece for further consideration. You should hear from us again in the next couple of months."
 
-  const displayCover = (e) => {
-    hideAndShowStuff(allElements, 'none')
-    document.getElementById("cover").style.display = "block";
-  };
-
-  const displayHigh = (e) => {
-    hideAndShowStuff(allElements, 'none')
-    newStatus = "Rejected, Third Round";
-    document.getElementById("highEmail").style.display = "block";
-    document.getElementById("verarbeitenButton").style.display = "block";     
-  };
-
-  const displayMiddle = (e) => {
-    hideAndShowStuff(allElements, 'none')
-    newStatus = "Rejected, Second Round";
-    document.getElementById("middleEmail").style.display = "block";
-    document.getElementById("verarbeitenButton").style.display = "block";         
-  };
-
-  const displayLow = (e) => {
-    hideAndShowStuff(allElements, 'none')
-    newStatus = "Rejected, First Round";
-    document.getElementById("lowEmail").style.display = "block";
-    document.getElementById("verarbeitenButton").style.display = "block";       
-  };
-
-  const displayAnon = (e) => {
-    hideAndShowStuff(allElements, 'none')
-    newStatus = "Rejected Anonymously";
-    document.getElementById("anonEmail").style.display = "block";
-    document.getElementById("verarbeitenButton").style.display = "block";         
-  };
-
-  const displayRec = (e) => {
-    hideAndShowStuff(allElements, 'none')
-    newStatus = "Recommended";
-    document.getElementById("recEmail").style.display = "block";
-    document.getElementById("verarbeitenButton").style.display = "block";     
-  };
-
-  const openFile = (e) => {
-    e.preventDefault();
-    console.log('This button will open the file. ')
-  };
 //
 //
-// UPDATE STATUS TO REJECTED AND SEND EMAIL  
+////// DISPLAYS EMAILTIERTEMPLATE COMPONENT IN EDITING WINDOW BASED ON COMPONENT NAME. ALSO SETS STATUS. 
+//
+//
+    const displayComponent = (component) => {
+      setComponentToShow(component);
+
+      const componentConfig = {
+        testHigh: {
+          newStatus: "Rejected, Third Round",
+          displayName: "Top-Tier Rejection",
+          title: true,
+          name: true,
+          thankYou: true,
+          magazine: true,
+          unfortunately: true,
+          invite: true,
+          subjective: true,
+          readerNote: true,
+          coverLetter: false,
+          recommend: false,
+          readerName: true,
+        },
+        testMiddle: {
+          newStatus: "Rejected, Second Round",
+          displayName: "Middle-Tier Rejection",
+          title: true,
+          name: true,
+          thankYou: true,
+          magazine: true,
+          unfortunately: true,
+          invite: true,
+          subjective: false,
+          readerNote: false,
+          coverLetter: false,
+          recommend: false,
+          readerName: true,
+        },
+        testLow: {
+          newStatus: "Rejected, First Round",
+          displayName: "Low-Tier Rejection",
+          title: true,
+          name: true,
+          thankYou: true,
+          magazine: true,
+          unfortunately: true,
+          invite: false,
+          subjective: false,
+          readerNote: false,
+          coverLetter: false,
+          recommend: false,
+          readerName: true,
+        },
+        testAnon: {
+          newStatus: "Rejected Anonymously",
+          displayName: "Anonymous Rejection",
+          title: true,
+          name: true,
+          thankYou: true,
+          magazine: true,
+          unfortunately: true,
+          invite: false,
+          subjective: false,
+          readerNote: false,
+          coverLetter: false,
+          recommend: false,
+          readerName: false,
+        },
+        testRec: {
+          newStatus: "Recommended",
+          displayName: "Recommend",
+          title: true,
+          name: true,
+          thankYou: true,
+          magazine: true,
+          unfortunately: false,
+          invite: false,
+          subjective: false,
+          readerNote: false,
+          coverLetter: false,
+          recommend: true,
+          readerName: true,
+        },     
+        testUpdate: {
+          newStatus: values.status,
+          displayName: "Update",
+          title: false,
+          name: false,
+          thankYou: false,
+          magazine: false,
+          unfortunately: false,
+          invite: false,
+          subjective: false,
+          readerNote: false,
+          coverLetter: true,
+          recommend: false,
+          readerName: false,
+        },
+        testCover: {
+          newStatus: values.status,
+          displayName: "Cover Letter",
+          title: false,
+          name: false,
+          thankYou: false,
+          magazine: false,
+          unfortunately: false,
+          invite: false,
+          subjective: false,
+          readerNote: false,
+          coverLetter: true,
+          recommend: false,
+          readerName: false,
+        },                   
+        testOpen: {
+          newStatus: values.status,
+          displayName: "Open File",
+          title: false,
+          name: false,
+          thankYou: false,
+          magazine: false,
+          unfortunately: false,
+          invite: false,
+          subjective: false,
+          readerNote: false,
+          coverLetter: true,
+          recommend: false,
+          readerName: false,
+        },                   
+      }
+
+      if (componentConfig[component]) {
+        const {
+          newStatus,
+          displayName,
+          title,
+          name,
+          thankYou,
+          magazine,
+          unfortunately,
+          invite,
+          subjective,
+          readerNote,
+          coverLetter,
+          recommend,
+          readerName,
+        } = componentConfig[component];
+    
+        setNewStatus(newStatus);
+        setTestShowDisplayName(displayName);
+        setTestShowTitle(title);
+        setTestShowName(name);
+        setTestShowThankYou(thankYou);
+        setTestShowMagazine(magazine);
+        setTestShowUnfortunately(unfortunately);
+        setTestShowInvite(invite);
+        setTestShowSubjective(subjective);
+        setTestShowReaderNote(readerNote);
+        setTestShowCoverLetter(coverLetter);
+        setTestShowRecommend(recommend);
+        setTestShowReaderName(readerName);
+    
+        // COMMON LOGIC TO DISPLAY VERARBEITENBUTTON
+        document.getElementById("verarbeitenButton").style.display = "block";
+      }
+    };
+
+//
+//
+// UPDATES DATABASE WHEN SUBMISSION UPDATE OR REJECTION IS CARRIED OUT. 
 //
 //
 const handleVerarbeiten = (e, status) => {
@@ -138,37 +293,64 @@ const handleVerarbeiten = (e, status) => {
 //  console.log("newStatus: " + newStatus)
   const selectedStatus = status || newStatus;
 //  console.log("selectedStatus after updating: " + selectedStatus)
+  // PERFORMS VERARBEITENSUBMISSIONCLIENT FUNCTION IF THESE VALUES EXIST.  
   if (name && email && title && reader && selectedStatus) {
     verarbeitenSubmissionClient(id, { name, title, email, reader, status: selectedStatus, readerNote });
   }
+  // HIDES VERARBEITENBUTTON AND SHOWS SUCCESS IF STATUS IS NO LONGER OPEN.
   if (status !== 'open' && status !== 'EIC') {
   document.getElementById("verarbeitenButton").style.display = "none";
   document.getElementById("verarbeitenSuccess").style.display = "block";
   }
 };
+
+//
+//
+// USES UNASSIGNSUBMISSIONCLIENT FUNCTION ON THE ACTIVE SUBMISSION.
+//
+//
+const handleUnclaimSubmission = async (submissionId) => {
+  try {
+    // Call the unclaimSubmissionClient function
+    await unAssignSubmissionClient(submissionId);
+    history.push('/dashboard-claimed');
+    // You may want to perform additional actions after unclaiming a submission
+  } catch (error) {
+    console.error('Error unclaiming submission:', error);
+    // Handle errors as needed
+  }
+};
+
 //
 //
 // THE DASHBOARD SUBMIT FUNCTIONALITY STARTS HERE AND HAS FOUR POINTS.
 // THIS IS THE FORM ITSELF THAT SUBMITS.
 //
 //
+//
+//
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { name, email, title, wordCount, status, coverLetter, readerNote } = values;
-    if (name && email && title && wordCount && status && coverLetter) {
-      if (status != "Open") {
+    const { name, email, title, wordCount, type, status, coverLetter, readerNote } = values;
+    // IF THESE VALUES EXIST...
+    if (name && email && title && wordCount && type && status && coverLetter) {
+      // AND IF THE STATUS IS OPEN...
+      if (status === "Open") {
+        // RUNS THROUGH EVERYTHING AND SETS THEM TO READ ONLY...
         var theseTags = document.getElementsByClassName('allTags');
         for (var i = 0; i < theseTags.length; i++)
         {
           theseTags.item(i).readOnly = true;
         }
+        // AND HIDES THE SUBMIT BUTTONS...
         var theseButtons = document.getElementsByClassName('allButons');
-        for (var i = 0; i < theseButtons.length; i++)
+        for (var j = 0; j < theseButtons.length; j++)
         {
-          theseButtons.item(i).style.display = "none";
+          theseButtons.item(j).style.display = "none";
         }
       }
-      verarbeitenSubmissionClient(id, { name, email, title, wordCount, status, coverLetter, readerNote });
+      // THEN PRFORMS VERARBEITENSUBMISSIONCLIENT TO UPDATE THE SUBMISSION.
+      verarbeitenSubmissionClient(id, { name, email, title, wordCount, type, status, reader, coverLetter, readerNote });
     }
   };
 
@@ -176,28 +358,29 @@ const handleVerarbeiten = (e, status) => {
     return <div className='loading'></div>;
   }
 
+  // IF THE VERARBEITENITEM THAT IS SET ABOVE BY USEEFFECT DOESN'T EXIST, THIS GIVES AN ERROR.
   if (!verarbeitenItem || error) {
     return (
       <>
         <ErrorContainer className='page'>
-          <h5>There was an error, please double check your submission ID</h5>
-          <Link to='/dashboard' className='btn'>
+          <h5>There was an error, please double check your submission ID. </h5>
+          <Link to='/dashboard-claimed' className='btn'>
             dashboard
           </Link>
         </ErrorContainer>
       </>
     );
   }
+  //
+  //
+  //////// IF NO ERRORS, RETURNS FORM ON TOP LEFT (AND BOTTOM RIGHT) TO CAPTURE THE READER ENTRIES.
+  //
+  // 
   return (
     <>
       {!reader && <Redirect to='/' />}
       <Navbar />
       <Container className='page'>
-{/*
-//
-// DASHBOARD, TOP LEFT SIDE (FOR UPDATING ENTRY)
-//
-*/}
         <form className='form' onSubmit={handleSubmit}>
           <p>{verarbeitenComplete && 'Success! Processing Complete'}</p>
 
@@ -220,6 +403,7 @@ const handleVerarbeiten = (e, status) => {
                 name='title'
                 value={values.title}
                 status={values.status}
+                isEIC={isEIC}
                 handleChange={handleChange}
               />
               <br />
@@ -228,6 +412,7 @@ const handleVerarbeiten = (e, status) => {
                 name='name'
                 value={values.name}
                 status={values.status}
+                isEIC={isEIC}
                 handleChange={handleChange}
               /> 
               <br />
@@ -236,15 +421,18 @@ const handleVerarbeiten = (e, status) => {
                 name='email'
                 value={values.email}
                 status={values.status}
+                isEIC={isEIC}
                 handleChange={handleChange}
               /> 
               <br />
             <div className='action-div-top'>
+            {/* SHOWS WORD COUNT VALUE IF WORD COUNT ISN'T NULL. */}
+            {values.wordCount === null ? '' : <div className='form-row action-div-WC-S'> <label htmlFor='wordCount' className='form-label'> <strong>Word Count</strong> </label> {values.wordCount} </div>}
               <div className='form-row action-div-WC-S'>
-                <label htmlFor='wordCount' className='form-label'>
-                <strong>Word Count</strong>
+                <label htmlFor='type' className='form-label'>
+                <strong>Type</strong>
                 </label>
-                  {values.wordCount}
+                  {values.type}
               </div> 
               <div className='form-row action-div-WC-S'>
                 <label htmlFor='status' className='form-label'>
@@ -259,99 +447,162 @@ const handleVerarbeiten = (e, status) => {
                   Click to open reply form
                 </strong>
               </div>
-{/* 
-//
-// DASHBOARD, BOTTOM LEFT SIDE (FOR BUTTONS TO CHANGE RIGHT-SIDE DISPLAY)
-//
-*/}
-    {/* CONTAINER FOR TOP ROW OF BUTTONS, LEFT-HAND COLUMN */}
-              <div className="action-div">
-                <button
-                    className={values.status !== "Open" ? 'disabledBlue' : 'blue'}
-                    type='button'
-                    disabled={values.status !="Open"}
-                    onClick={displayRec}
-                >
-                    Recommend
-                </ button>
-                <button                                                       
-                    className={values.status !== "Open" ? 'disabledBlue' : 'blue'}
-                    type='button'
-                    disabled={values.status !="Open"}
-                    onClick={displayAnon}
-                >
-                    Anonymous Rejection
-                </ button>
-              </div>
-              
-    {/* CONTAINER FOR MIDDLE ROW OF BUTTONS, LEFT-HAND COLUMN */}            
-              <div className="action-div">
-                <button 
-                  className={values.status !== "Open" ? 'disabledBlue' : 'blue'}
-                  type='button' 
-                  disabled={values.status !="Open"} 
-                  onClick={displayLow}
-                > 
-                      Low-tier rejection 
-                </ button>
-                <button 
-                  className={values.status !== "Open" ? 'disabledBlue' : 'blue'}
-                  type='button' 
-                  disabled={values.status !="Open"}
-                  onClick={displayMiddle}
-                > 
-                      Middle-tier rejection 
-                </ button>
-                <button 
-                  className={values.status !== "Open" ? 'disabledBlue' : 'blue'}
-                  type='button' 
-                  disabled={values.status !="Open"}
-                  onClick={displayHigh}
-                > 
-                      High-tier rejection 
-                </ button>
-              </div>
 
-    {/* CONTAINER FOR BOTTOM ROW OF BUTTONS, LEFT-HAND COLUMN */}  
-              <div className='action-div-middle'>
-                <strong>Other Actions</strong>
-              </div>          
-              <div className="action-div">
-                <button className= 'blue' type='button' onClick={openFile}> Open File </ button>
-                <button 
-                  className={values.status !== "Open" ? 'disabledBlue' : 'blue'}
-                  type='button' 
-                  disabled={values.status !="Open"}
-                  onClick={displayUpdate}
-                > 
-                      Update 
-                </button>
-                <button className= 'blue' type='button' onClick={displayCover}> Cover Letter </button>
-               </div>
-               <div className="action-div">
-                <Link to='/dashboard'>
-                  <button className= 'blue' type='button'> Back to Dashboard </ button>
-                </Link>
-               </div>
-            </div>
-{/* 
-//
-// DASHBOARD, TOP RIGHT SIDE (DIFFERENT DISPLAYS, DEPENDING ON BUTTON PRESS; DEFAULT IS COVER LETTER)
-//
-*/}
+  {/* DASHBOARD, BOTTOM LEFT SIDE (FOR BUTTONS TO CHANGE RIGHT-SIDE DISPLAY) */}
+  
+    {/* CONTAINER FOR TOP ROW OF BUTTONS, LEFT-HAND COLUMN */}
+    <div className="action-div">
+      {/* 
+      //
+      RECOMMENDATION BUTTON 
+      //
+      */}
+        <ButtonsDisplay
+          className={values.status === "Open" ? 'blue' : 'disabledBlue'}
+          type='button'
+          disabled={values.status !== "Open"}
+          onClick={() => displayComponent('testRec')}
+        >
+          Recommend
+        </ButtonsDisplay>
+      {/* 
+      //
+      ANONYMOUS REJECTION BUTTON 
+      //
+      */}
+        <ButtonsDisplay
+          className={values.status === "Open" ? 'blue' : 'disabledBlue'}
+          type='button'
+          disabled={values.status === "Open" || (values.status === "Recommended" && isEIC) ? false : true }
+          onClick={() => displayComponent('testAnon')}
+        >
+          Anonymous Rejection
+        </ButtonsDisplay>
+      </div>
+  {/* 
+  //
+  // CONTAINER FOR TOP ROW OF BUTTONS, LEFT-HAND COLUMN
+  //
+  */}
+    <div className="action-div">
+      {/* 
+      //
+      LOW-TIER REJECTION BUTTON 
+      //
+      */}
+        <ButtonsDisplay
+          className={values.status === "Open" ? 'blue' : 'disabledBlue'}
+          type='button'
+          disabled={values.status === "Open" || (values.status === "Recommended" && isEIC) ? false : true }
+          onClick={() => displayComponent('testLow')}
+        > 
+          Low-tier rejection 
+        </ButtonsDisplay>
+      {/* 
+      //
+      MIDDLE-TIER REJECTION BUTTON 
+      //
+      */}
+        <ButtonsDisplay
+          className={values.status === "Open" ? 'blue' : 'disabledBlue'}
+          type='button'
+          disabled={values.status === "Open" || (values.status === "Recommended" && isEIC) ? false : true }
+          onClick={() => displayComponent('testMiddle')}
+        > 
+          Middle-tier rejection 
+        </ButtonsDisplay>
+      {/* 
+      //
+      HIGH-TIER REJECTION BUTTON 
+      //
+      */}
+        <ButtonsDisplay
+          className={values.status === "Open" ? 'blue' : 'disabledBlue'}
+          type='button'
+          disabled={values.status === "Open" || (values.status === "Recommended" && isEIC) ? false : true }
+          onClick={() => displayComponent('testHigh')}
+        > 
+          High-tier rejection Test 
+        </ButtonsDisplay>
+</div>
+  {/* 
+  //
+  // CONTAINER FOR BOTTOM ROW OF BUTTONS, LEFT-HAND COLUMN
+  //
+  */}
+    <div className='action-div-middle'>
+      <strong>Other Actions</strong>
+    </div>          
+    <div className="action-div">
+      {/* 
+      //
+      OPEN FILE FOLDER BUTTON 
+      //
+      */}
+      <a 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        href="https://drive.google.com/drive/u/0/folders/1ikWDoiulgbYQ-RCZkTcpwbBISUoeNyyi">
+          <ButtonsDisplay 
+            className= 'blue' 
+            type='button' 
+          > 
+            Open File Folder 
+          </ ButtonsDisplay>
+        </a>
+      {/* 
+      //
+      UPDATE BUTTON 
+      //
+      */}
+        {isEIC && (
+          <ButtonsDisplay
+            className={values.status === "Open" ? 'blue' : values.status === "Recommended" ? 'blue' : 'disabledBlue'}
+            type='button'
+            disabled={values.status === "Open" || (values.status === "Recommended" && isEIC) ? false : true }
+            onClick={() => displayComponent('testUpdate')}
+          > 
+            Update 
+          </ButtonsDisplay>
+        )}
+      {/* 
+      //
+      SHOW COVER LETTER BUTTON 
+      //
+      */}      
+        <ButtonsDisplay 
+          className= 'blue' 
+          type='button' 
+          onClick={() => displayComponent('testCover')}
+        >
+          Cover Letter 
+        </ButtonsDisplay>
+      </div>
+
+      <div className="action-div">
+        {/* 
+        //
+        UNCLAIM BUTTON 
+        //
+        */}      
+          <button 
+            className={values.status === "Open" ? 'blue' : 'disabledBlue'}
+            type='button'
+            disabled={values.status !== "Open"}
+            onClick={() => handleUnclaimSubmission(id)}
+          >
+            Unclaim
+          </button>
+          <Link to='/dashboard-claimed'>
+            <button className= 'blue' type='button'> 
+              Back to Dashboard 
+            </ button>
+          </Link>
+        </div>
+      </div>
+
+    {/* DASHBOARD, TOP RIGHT SIDE (DIFFERENT DISPLAYS, DEPENDING ON BUTTON PRESS; DEFAULT IS COVER LETTER) */}
             <div className='container'>
-    {/* TEXT OF SUBMITTED COVER LETTER */}
-              <div className = 'allTags' id='cover' style={{width : '100%', height : '516px'}}>
-                <h2 className = 'action-div-top' >
-                  <strong>
-                    Cover Letter
-                  </strong>
-                </h2>
-                <p>
-                  {values.coverLetter}
-                </p>
-              </div>
-    {/* TOP-RIGHT TEXT FOR UPDATES */}
               <div className = 'allTags' id='updateText' style={{width : '100%', height : '516px', display : 'none'}}>
                 <div style={{width : '100%', height : '440px'}}>
                   <h2 className = 'action-div-top' >
@@ -364,70 +615,49 @@ const handleVerarbeiten = (e, status) => {
                   </p>
                 </div>
               </div>
-    {/* TOP-RIGHT TEXT FOR TOP-TIER REJECTION */}
-                <div className ='allTags' id='highEmail' style={{display : 'none'}}>
-                  <TierHigh
+              {componentToShow && (
+                <div className ='allTags'>
+                  <EmailTierTemplate
                     name={values.name}
-                    type={values.type}
+                    showName={testShowName}
                     title={values.title} 
+                    showTitle={testShowTitle} 
                     currentReader={currentReader}
+                    showReaderName={testShowReaderName}
+                    displayName={displayName}
+                    thankYou={thankYouVerarbeiten}
+                    showThankYou={testShowThankYou}
+                    magazine={magazineVerarbeiten}
+                    showMagazine={testShowMagazine}
+                    unfortunately={unfortunatelyVerarbeiten}                    
+                    showUnfortunately={testShowUnfortunately}                    
+                    invite={happyVerarbeiten}
+                    showInvite={testShowInvite}
+                    subjective={subjectiveVerarbeiten}
+                    showSubjective={testShowSubjective}
+                    recommend={recommendVerarbeiten}
+                    showRecommend={testShowRecommend}
+                    coverLetterDisplay={values.coverLetter}
+                    showCoverLetter={testShowCoverLetter}                    
                     readerNote={values.readerNote}
+                    showReaderNote={testShowReaderNote}
                     handleChange={handleChange}
                   />
                 </div>
-    {/* TOP-RIGHT TEXT FOR MIDDLE-TIER REJECTION */}                
-                <div className ='allTags' id='middleEmail' style={{display : 'none'}}>
-                  <TierMiddle
-                    name={values.name}
-                    type={values.type}
-                    title={values.title} 
-                    currentReader={currentReader}
-                    readerNote={values.readerNote}
-                    handleChange={handleChange}
-                  />
-                </div>
-    {/* TOP-RIGHT TEXT FOR LOW-TIER REJECTION */}   
-                <div className ='allTags ' id='lowEmail' style={{display : 'none'}}>
-                  <TierLow
-                    name={values.name}
-                    type={values.type}
-                    title={values.title} 
-                    currentReader={currentReader}
-                    readerNote={values.readerNote}
-                    handleChange={handleChange}
-                  /> 
-                </div>
-    {/* TOP-RIGHT TEXT FOR ANONYMOUS REJECTION */}
-               <div className ='allTags' id='anonEmail' style={{display : 'none'}}>
-                  <TierAnon
-                    name={values.name}
-                    type={values.type}
-                    title={values.title} 
-                    readerNote={values.readerNote}
-                    handleChange={handleChange}
-                  /> 
-                </div>
-    {/* RECOMMEND TEXT FOR RECOMMENDATION */}
-               <div className ='allTags' id='recEmail' style={{display : 'none'}}>
-                  <TierRec
-                    name={values.name}
-                    type={values.type}
-                    title={values.title} 
-                    currentReader={currentReader}
-                    readerNote={values.readerNote}
-                    handleChange={handleChange}
-                  /> 
-                </div>
-    {/* SUBMIT BUTTON FOR SENDING REJECTIONS, RECOMMENDATIONS, DB UPDATES, ETC */}
+              )}
+
+    {/* SUBMIT BUTTON FOR SENDING REJECTIONS, RECOMMENDATIONS, DATABASE UPDATES, ETC */}
+    {/* ON CLICK, ACTIVATES HANDLEVERARBEITEN FUNCTION ABOVE */}
                     <div className='action-div-top'>
                     <button className = 'red allTags' id='verarbeitenButton' style={{display : 'none'}} type='button' onClick={handleVerarbeiten}>
                       Submit
                     </ button>
-    {/* SUCCESSFUL REJECTION TEXT. MAKES THE BUTTON UNCLICKABLE. */}
+    {/* SHOWS IF FORM SUBMISSION BY READER IS SUCCESSFUL. CHANGES STYLE TO NONE TO MAKE BUTTON UNCLICKABLE. */}
                     <div className = 'allTags' id='verarbeitenSuccess' style={{display : 'none'}}> 
                       Submit successful!
                     </div>
                   </div>
+    {/* READER NOTES FIELD THAT IS PART OF THE READER FORM. */}
                 <div>
                   <label className='form-label'>      
                     <strong>Reader Notes</strong>  
@@ -435,7 +665,7 @@ const handleVerarbeiten = (e, status) => {
                   <textarea
                     value={values.readerNote}
                     name='readerNote'
-                    readOnly={values.status != "Open"}
+                    readOnly={values.status !== "Open"}
                     onChange={handleChange}
                     className='form-textarea'
                     placeholder='placeholder text...'
@@ -445,7 +675,6 @@ const handleVerarbeiten = (e, status) => {
               <br />
             </div>
           </div>
-          
         </form>
       </Container>
     </>

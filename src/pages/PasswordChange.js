@@ -1,4 +1,4 @@
-//////// THIS IS THE LOGIN PAGE. WHEN YOU CLICK "LOG IN" ON HOME.JS, IT BRINGS YOU HERE. ////////
+//////// THIS IS THE PASSWORD CHANGE PAGE. ////////
 
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
@@ -7,34 +7,41 @@ import { Redirect } from 'react-router-dom';
 import FormRow from '../components/FormRow';
 import florian from '../assets/FlorianBG_Acolyte_Logo_PNG_TINY.png';
 
-function Login() {
+function PasswordChange() {
   const [values, setValues] = useState({
     name: '',
     email: '',
     password: '',
+    newPassword: '',
     isMember: true,
   });
 
-  const { reader, delegate, login, isLoading, showAlert } = useGlobalContext();
+  const { reader, passwordChange, isLoading, showAlert } = useGlobalContext();
+  const [isPasswordChanged, setIsPasswordChanged] = useState(false); // State to track password change success
 
-  const toggleMember = () => {
-    setValues({ ...values, isMember: !values.isMember });
-  };
 
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    const { name, email, password, isMember } = values;
-
-    if (isMember) {
-      login({ email, password });
-    } else {
-      delegate({ name, email, password });
+    const { email, password, newPassword } = values;
+  
+    // Call the changePassword function from your context or wherever you handle API calls
+    try {
+      await passwordChange({ email, password, newPassword });
+      setIsPasswordChanged(true); // Set the state to true upon successful password change
+    } catch (error) {
+      console.error('Password change error:', error);
     }
   };
+
+  // Redirect if password change was successful
+  if (isPasswordChanged) {
+    return <Redirect to="/change-password-success" />;
+  }
+
   const readerArray = []
   return (
     <> 
@@ -46,42 +53,44 @@ function Login() {
               Whoopsie, there was an error. Please try again.
             </div>
           )}
-          {/* Login Form */}
+
+          {/* Password Change Form */}
           <form className='form' onSubmit={onSubmit}>
             <img src={florian} alt='Acolyte Submission System' className='logo' />
-            <h4>Login</h4>
-            {/* name field */}
-            {!values.isMember && (
-              <FormRow
-                type='name'
-                name='name'
-                value={values.name}
-                handleChange={handleChange}
-              />
-            )}
-
-            {/* single form row */}
+            <h4>Password Change</h4>
+            <span>
+              {values.name}
+            </span>
+            {/* Email */}
             <FormRow
               type='email'
               name='email'
               value={values.email}
               handleChange={handleChange}
             />
-            {/* end of single form row */}
-            {/* single form row */}
+
+            {/* Password */}
             <FormRow
               type='password'
               name='password'
               value={values.password}
               handleChange={handleChange}
             />
-            {/* end of single form row */}
+
+            {/* New Password Field */}
+            <FormRow
+              type='password'
+              name='newPassword'
+              value={values.newPassword}
+              handleChange={handleChange}
+            />
+
             <button
               type='submit'
               className='btn btn-block'
               disabled={isLoading}
             >
-              {isLoading ? 'Fetching Reader...' : 'Submit'}
+              {isLoading ? 'Changing Password...' : 'Change Password'}
             </button>
           </form>
         </div>
@@ -122,4 +131,4 @@ const Wrapper = styled.section`
   }
 `;
 
-export default Login;
+export default PasswordChange;

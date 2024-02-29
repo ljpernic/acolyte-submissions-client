@@ -1,5 +1,5 @@
 //////// PAGE
-//////// SUBMISSION FORM, GENERIC. IS IT STILL BEING USED? ////////
+//////// POETRY SUBMISSION FORM. ////////
 
 import { useState } from 'react';
 import styled from 'styled-components';
@@ -8,13 +8,14 @@ import FormRow from '../components/FormRow';
 import FormRowTextArea from '../components/FormRowTextArea';
 import { useHistory } from 'react-router-dom';
 
-function SubmissionForm() {
+function SubmissionFormPoetry() {
   const History = useHistory();
   const [values, setValues] = useState({
     name: '',
     email: '',
+    confirmEmail: '',
     title: '',
-    type: '',
+    type: 'poetry',
     wordCount: '',
     file: '',
     coverLetter: '',
@@ -26,11 +27,17 @@ function SubmissionForm() {
   
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
+//    console.log('handleChange values:' + JSON.stringify(values))
   };
 
   // PUSHES SUBMISSIONS TO MONGODB, RENAMES FILES, AND PUSHES FILES TO GOOGLE DRIVE 
   const onSubmit = async (e) => {
     e.preventDefault();
+    
+    if (values.email !== values.confirmEmail) {
+      setErrorMessage("Email addresses don't match");
+      return;
+    }
 
     // LOCATION OF SUBMITTED FILE
     const submitFile = e.target.file.files[0]
@@ -41,12 +48,18 @@ function SubmissionForm() {
 
     // VALUES FROM THE SUBMITTED FORM
     const { name, email, title, type, wordCount, file, coverLetter } = values;
+//    console.log('const {name...} values:' + JSON.stringify(values))
 
     createSubmittedClient({ name, email, title, type, wordCount, file, coverLetter })
     .then(submission => {
-//      console.log('Submission Data:', submission);
+//      console.log('.then(submission...):', submission);
       submissionId = submission._id;
+//      console.log('submissionId:' + submissionId)
       processSubmissionId(submissionId); // Pass submissionId to the processing function
+    })
+    .then(() => {
+      // Redirect after all asynchronous operations are complete
+      History.push('/submitted');
     })
     .catch(error => {
       // Handle validation errors
@@ -70,33 +83,33 @@ function SubmissionForm() {
       const submitDay = submitDate.getDate();
     
     // CUTS THE FILE NAME TO A MAX OF 50 CHAR 
-      if (values.title.length <= 50) 
-        {
-          submitTitle = values.title;
-        } 
-          else 
-          {
-            submitTitle = values.title.slice(0, 49);
-          }
+    if (values.title.length <= 50) 
+    {
+      submitTitle = values.title;
+    } 
+      else 
+      {
+        submitTitle = values.title.slice(0, 49);
+      }
 
-      if (values.name.length <= 50) 
-        {
-          submitName = values.name;
-        } 
-          else 
-          {
-            submitName = values.name.slice(0, 49);
-          }
+  if (values.name.length <= 50) 
+    {
+      submitName = values.name;
+    } 
+      else 
+      {
+        submitName = values.name.slice(0, 49);
+      }
 
-      if (values.type === 'fiction') {
-        typeLetter = 'F';
-      } else if (values.type === 'poetry') {
-          typeLetter = 'P';
-        } else if (values.type === 'non-fiction') {
-            typeLetter = 'N';
-          } else {
-              typeLetter = 'UNK';
-            }
+if (values.type === 'fiction') {
+  typeLetter = 'F';
+} else if (values.type === 'poetry') {
+  typeLetter = 'P';
+} else if (values.type === 'non-fiction') {
+  typeLetter = 'N';
+} else {
+  typeLetter = 'UNK';
+}
 
     // RENAMES THE FILE
     const newName = typeLetter + ' - ' + submitYear + '-' + submitMonth + '-' + submitDay + ' - ' +  submitName + ' - ' + submitTitle;
@@ -119,7 +132,6 @@ function SubmissionForm() {
             "Content-Type": "text/plain;charset=utf-8",
           },
         })
-        .then(History.push('/submitted'))
         .then(response => response.json())
         .then(res => res.json())
         .then((a) => {
@@ -141,7 +153,7 @@ return (
 )}
           <form className='form' onSubmit={onSubmit}>
           <h3><strong>Acolyte Submissions System</strong></h3>
-            <h4>Submission Form</h4>
+            <h4>Poetry Submission</h4>
             {/* name field */}
               <FormRow
                 type='text'
@@ -158,6 +170,13 @@ return (
               placeholder='How can we reach you?'
               handleChange={handleChange}
             />
+            <FormRow
+              type='email'
+              name='confirmEmail'
+              value={values.confirmEmail}
+              placeholder='Confirm your email.'
+              handleChange={handleChange}
+            />
             {/* title field */}
             <FormRow
               type='text'
@@ -170,25 +189,13 @@ return (
             <div className='form-row'>
               {(
                 <label htmlFor={values.name} className='form-label'>         {/* Makes sure the label is keyed to the name value. */}
-                  Type                                              {/* Displays that name value dynamically. */}
+                  <strong>Type</strong>                                              {/* Displays that name value dynamically. */}
                 </label>
               )}
-            <select name="type" onChange={handleChange} className='form-input'>
-              <option value=""></option>
-              <option value="fiction">Fiction</option>
-              <option value="poetry">Poetry</option>
-              <option value="non-fiction">Non-Fiction</option>
-              <option value="art">Art</option>
-            </select>
+            <div name="type" onChange={handleChange} className='form-input one-option' value={values.type || ''}>
+              <span value="poetry">Poetry</span>
+            </div>
           </div>
-            {/* word count field */}
-            <FormRow
-              type='number'
-              name='wordCount'
-              value={values.wordCount}
-              placeholder='For fiction and non-fiction, how many words is your submission?'
-              handleChange={handleChange}
-            />
             {/* file field */}
             <FormRow
               type='file'
@@ -250,6 +257,11 @@ const Wrapper = styled.section`
     color: var(--primary-500);
     cursor: pointer;
   }
+  .one-option {
+    display: inline-block;
+    padding: 8px 12px;
+    border: none;
+    background-color: transparent;  }
 `;
 
-export default SubmissionForm;
+export default SubmissionFormPoetry;

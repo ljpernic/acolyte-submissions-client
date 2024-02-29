@@ -1,9 +1,13 @@
-//////// Sets the state based on what action happens (if adding the reader is successful, if submissions are found, etc). ////////
+//////// CONTEXT
+//////// SETS THE STATE BASED ON ACTIONS (IF SUCCESSFUL, IF ERROR, ETC //////// 
 
 import {
   DELEGATE_SUCCESS,
   DELEGATE_ERROR,
-  LOGIN_READER,
+  LOGIN_READER_SUCCESS,
+  LOGIN_READER_ERROR,
+  PASSWORD_CHANGE_SUCCESS,
+  PASSWORD_CHANGE_ERROR,
   LOGOUT_READER,
   SET_LOADING,
   FETCH_SUBMISSIONS_SUCCESS,
@@ -13,10 +17,10 @@ import {
   DELETE_SUBMISSION_ERROR,
   FETCH_SINGLE_SUBMISSION_SUCCESS,
   FETCH_SINGLE_SUBMISSION_ERROR,
-  DOWNLOAD_SUBMISSION_SUCCESS,
-  DOWNLOAD_SUBMISSION_ERROR,
   VERARBEITEN_SUBMISSION_ERROR,
   VERARBEITEN_SUBMISSION_SUCCESS,
+  UPDATE_READER_SUCCESS,
+  UPDATE_READER_ERROR,
 } from './actions'
 
 const reducer = (state, action) => {
@@ -38,13 +42,45 @@ const reducer = (state, action) => {
       isLoading: false,
       reader: null,
       showAlert: true,
+      errorMessage: action.payload ? action.payload.error : 'Unknown error occurred',
+    }
+  }
+
+  // DELEGATE REDUCER //
+  if (action.type === LOGIN_READER_SUCCESS) {
+    return {
+      ...state,
+      isLoading: false,
+      reader: action.payload,
+    }
+  }
+  if (action.type === LOGIN_READER_ERROR) {
+    return {
+      ...state,
+      isLoading: false,
+      reader: null,
+      showAlert: true,
+    }
+  }
+
+  // CHANGE PASSWORD REDUCER //
+  if (action.type === PASSWORD_CHANGE_SUCCESS) {
+    return {
+      ...state,
+      isLoading: false,
+      reader: action.payload,
+    }
+  }
+  if (action.type === PASSWORD_CHANGE_ERROR) {
+    return {
+      ...state,
+      isLoading: false,
+      reader: null,
+      showAlert: true,
     }
   }
 
   // LOGIN AND LOGOUT REDUCER // 
-  if (action.type === LOGIN_READER) {
-    return { ...state, reader: action.payload }
-  }
   if (action.type === LOGOUT_READER) {
     return {
       ...state,
@@ -52,7 +88,7 @@ const reducer = (state, action) => {
       showAlert: false,
       submissions: [],
       isVerarbeitening: false,
-      verarbeitenItem: null,
+      verarbeitenItem: null,   
       downloadItem: null,
     }
   }
@@ -64,7 +100,6 @@ if (action.type === FETCH_SUBMISSIONS_SUCCESS) {
     isLoading: false,
     verarbeitenItem: null,
     singleSubmissionError: false,
-    verarbeitenComplete: false,
     submissions: action.payload,
   }
 }
@@ -105,15 +140,6 @@ if (action.type === FETCH_SUBMISSIONS_ERROR) {
     return { ...state, isLoading: false, verarbeitenItem: '', singleSubmissionError: true }
   }
 
-  // DOWNLOAD SINGLE SUBMISSION REDUCER //
-  if (action.type === DOWNLOAD_SUBMISSION_SUCCESS) {
-//    console.log(`download reducer: ` + action.payload) 
-    return { ...state, isLoading: false, downloadItem: action.payload }
-  }
-  if (action.type === DOWNLOAD_SUBMISSION_ERROR) {
-    return { ...state, isLoading: false, downloadItem: '', singleSubmissionError: true }
-  }
-
   // VERARBEITEN (PROCESS) SUBMISSION REDUCER // 
   if (action.type === VERARBEITEN_SUBMISSION_SUCCESS) {
     return {
@@ -124,6 +150,24 @@ if (action.type === FETCH_SUBMISSIONS_ERROR) {
     }
   }
   if (action.type === VERARBEITEN_SUBMISSION_ERROR) {
+    return {
+      ...state,
+      isLoading: false,
+      verarbeitenComplete: true,
+      showAlert: true,
+    }
+  }
+
+  // ASSIGN (CLAIM) SUBMISSION REDUCER // 
+  if (action.type === UPDATE_READER_SUCCESS) {
+    return {
+      ...state,
+      isLoading: false,
+      verarbeitenComplete: true,
+      verarbeitenItem: action.payload,
+    }
+  }
+  if (action.type === UPDATE_READER_ERROR) {
     return {
       ...state,
       isLoading: false,
