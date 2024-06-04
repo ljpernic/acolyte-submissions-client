@@ -26,7 +26,7 @@ const Wrapper = styled.section`
     border-top-left-radius: var(--borderRadius);
     border-top-right-radius: var(--borderRadius);
     display: grid;
-    grid-template-columns: repeat(2, 3fr) repeat(4, 1fr);
+    grid-template-columns: repeat(2, 4.1fr) repeat(4, 1.3fr);
     box-shadow: var(--shadow-6);
     align-items: center;
     padding: 1rem 1.5rem;

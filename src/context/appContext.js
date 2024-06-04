@@ -1,9 +1,6 @@
-//////// CONTEXT
-//////// PASSES CONTEXT TO PAGES BASED ON PAGE STATE ////////
-
 import axios from 'axios'
 import '../axios'
-import React, { useContext, useEffect, useReducer } from 'react'
+import React, { useContext, useEffect, useReducer, useMemo, useCallback } from 'react'
 import {                                                                        // IMPORTS GLOBAL VALUES SET IN ACTIONS.JS CONTEXT.
   SET_LOADING,
   DELEGATE_SUCCESS,
@@ -43,121 +40,109 @@ const AppContext = React.createContext()                                      //
 const AppProvider = ({ children }) => {                                       // FUNCTION TO CARRY OUT INDIVIDUAL SUB-FUNCTIONS (FETCH SUBS, LOG IN, ETC).
   const [state, dispatch] = useReducer(reducer, initialState)
 
-  const setLoading = () => {
-    dispatch({ type: SET_LOADING })
-  }
+  useEffect(() => {
+    const reader = localStorage.getItem('reader');
+    if (reader) {
+      const newReader = JSON.parse(reader);
+      dispatch({ type: LOGIN_READER_SUCCESS, payload: newReader.name });
+    }
+  }, []);
 
-//
-// ADD READER
-//
-//// NOTE: I THINK THE DELEGATE FUNCTION IS WRONG ***.
-//// WHY IS IT SETTING THE READER IN THE LOCAL STORAGE? THAT SEEMS WRONG?
-                                                                              // ADD NEW READER. //
-  const delegate = async (readerInput) => {                                   // QUEUES UP READER INPUT FROM FORM.
+  // SET LOADING
+  const setLoading = useCallback(() => {
+    dispatch({ type: SET_LOADING });
+  }, []);
+
+  // DELEGATE
+  const delegate = useCallback(async (readerInput) => {
     setLoading()
     try {
-      const { data } = await axios.post(`api/v1/auth/delegate`, {             // POSTS INPUT FROM FORM TO /AUTH/DELEGATE.
+      const { data } = await axios.post(`api/v1/auth/delegate`, {
         ...readerInput,
       })
       const delegatePayload = [data.reader.name]
-      dispatch({ type: DELEGATE_SUCCESS, payload: delegatePayload })          // IF SUCCESSFUL, SETS NAME VARIABLE OF READER AS PAYLOAD.
-      localStorage.setItem(                                                   // CREATES LOCALSTORAGE READER WITH READER NAME AND TOKEN. 
+      dispatch({ type: DELEGATE_SUCCESS, payload: delegatePayload })
+      localStorage.setItem(
         'reader',
         JSON.stringify({ name: data.reader.name, token: data.token })
       )
-      } catch (error) {
-       dispatch({ type: DELEGATE_ERROR, payload: { error: 'Your error message here' } });
+    } catch (error) {
+      dispatch({ type: DELEGATE_ERROR, payload: { error: 'Your error message here' } });
     }
-  }
+  }, [setLoading]);
 
-//
-// CHANGE PASSWORD
-//
+  // CHANGE PASSWORD
+  const passwordChange = useCallback(async ({ email, password, newPassword }) => {
+    setLoading();
+    try {
+      if (newPassword.length < 8) {
+        throw new Error('New password must be at least 8 characters long.');
+      }
+      const { data } = await axios.post(`/api/v1/auth-pw/change-password`, {
+        email,
+        password,
+        newPassword,
+      });
+      const passwordChangePayload = [data.reader];
+      dispatch({ type: PASSWORD_CHANGE_SUCCESS, payload: passwordChangePayload });
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || 'An error occurred while changing the password';
+      dispatch({ type: PASSWORD_CHANGE_ERROR, payload: errorMessage });
+      throw new Error(errorMessage);
+    }
+  }, [setLoading]);
 
-const passwordChange = async ({ email, password, newPassword }) => {
-  setLoading();
-  try {
-    const { data } = await axios.post(`api/v1/auth/change-password`, {
-      email,
-      password,
-      newPassword,
-    })
-    const changePasswordPayload = [data.reader] 
-    dispatch({ type: PASSWORD_CHANGE_SUCCESS, payload:changePasswordPayload })
-  } catch (error) {
-    console.error('Password change error:', error);
-    dispatch({ type: PASSWORD_CHANGE_ERROR });
-  }
-};
-
-//
-// LOGIN
-//
-
-  const login = async (readerInput) => {
+  // LOGIN
+  const login = useCallback(async (readerInput) => {
     setLoading()
     try {
       const { data } = await axios.post(`api/v1/auth/login`, {
         ...readerInput,
       })
-      const loginPayload = [data.reader.name]  
+      const loginPayload = [data.reader.name]
       dispatch({ type: LOGIN_READER_SUCCESS, payload: loginPayload })
-      localStorage.setItem( 
+      localStorage.setItem(
         'reader',
         JSON.stringify({ name: data.reader.name, readerId: data.reader.readerId, token: data.token }),
-        )
-      } catch (error) {
+      )
+    } catch (error) {
       dispatch({ type: LOGIN_READER_ERROR })
     }
-  }
+  }, [setLoading]);
 
-//
-// LOGOUT
-//
-
-  const logout = () => {
+  // LOGOUT
+  const logout = useCallback(() => {
     localStorage.removeItem('reader')
     dispatch({ type: LOGOUT_READER })
-  }
-
-//
-// FETCH ALL SUBMISSIONS
-//
+  }, []);
 
   // FETCH SUBMISSIONS
-  const fetchSubmissionsClient = async () => {
+  const fetchSubmissionsClient = useCallback(async () => {
+    setLoading();
+    try {
+      const { data } = await axios.get(`/api/v1/submissions`);
+      dispatch({ type: FETCH_SUBMISSIONS_SUCCESS, payload: data.submissions });
+    } catch (error) {
+      dispatch({ type: FETCH_SUBMISSIONS_ERROR });
+    }
+  }, [setLoading]);
+
+  // CREATE SUBMITTED
+  const createSubmittedClient = useCallback(async (submitterInput) => {
     setLoading()
     try {
-      const { data } = await axios.get(`api/v1/submissions`)
-      dispatch({ type: FETCH_SUBMISSIONS_SUCCESS, payload: data.submissions })
+      const { data } = await axios.post(`api/v1/submitted`, {
+        ...submitterInput,
+      })
+      dispatch({ type: CREATE_SUBMISSION_SUCCESS, payload: data.submission })
+      return data.submission;
     } catch (error) {
-      dispatch({ type: FETCH_SUBMISSIONS_ERROR })
-      logout()
+      dispatch({ type: CREATE_SUBMISSION_ERROR })
     }
-  }
+  }, [setLoading]);
 
-//
-// CREATE SUBMITTED
-//
-
-    const createSubmittedClient = async (submitterInput) => {
-      setLoading()
-      try {
-        const { data } = await axios.post(`api/v1/submitted`, {
-          ...submitterInput,
-        })
-        dispatch({ type: CREATE_SUBMISSION_SUCCESS, payload: data.submission })
-        return data.submission;
-      } catch (error) {
-        dispatch({ type: CREATE_SUBMISSION_ERROR })
-      }
-    }
-
-//
-// DELETE SUBMISSION
-//
-
-  const deleteSubmissionClient = async (submissionId) => {
+  // DELETE SUBMISSION 
+  const deleteSubmissionClient = useCallback(async (submissionId) => {
     setLoading()
     try {
       await axios.delete(`api/v1/submissions/${submissionId}`)
@@ -165,28 +150,21 @@ const passwordChange = async ({ email, password, newPassword }) => {
     } catch (error) {
       dispatch({ type: DELETE_SUBMISSION_ERROR })
     }
-  }
+  }, [fetchSubmissionsClient, setLoading]);
 
-//
-// FETCH SINGLE SUBMISSION
-//
-  
-  const fetchSingleSubmission = async (submissionId) => {
+  // FETCH SINGLE SUBMISSION
+  const fetchSingleSubmission = useCallback(async (submissionId) => {
     setLoading()
     try {
       const { data } = await axios.get(`api/v1/submissions/${submissionId}`)
-//      console.log(`context/appContext.js, fetchSingleSubmission: ` + JSON.stringify(data.submission))
       dispatch({ type: FETCH_SINGLE_SUBMISSION_SUCCESS, payload: data.submission })
     } catch (error) {
       dispatch({ type: FETCH_SINGLE_SUBMISSION_ERROR })
     }
-  }
+  }, [setLoading]);
 
-//
-// UPDATE AND VERARBEITEN SUBMISSION
-//
-
-  const verarbeitenSubmissionClient = async (submissionId, readerInput) => {
+  // UPDATE SUBMISSION
+  const verarbeitenSubmissionClient = useCallback(async (submissionId, readerInput) => {
     setLoading()
     try {
       const { data } = await axios.patch(`api/v1/submissions/${submissionId}`, {
@@ -196,41 +174,33 @@ const passwordChange = async ({ email, password, newPassword }) => {
     } catch (error) {
       dispatch({ type: VERARBEITEN_SUBMISSION_ERROR })
     }
-  }
+  }, [setLoading]);
 
-//
-// CLAIM SUBMISSION
-//
-
-  const assignSubmissionClient = async (submissionId, reader) => {
+  // CLAIM SUBMISSION
+  const assignSubmissionClient = useCallback(async (submissionId, reader) => {
     setLoading()
     try {
-      // FIND CURRENT READER ID
       const { data } = await axios.patch(`api/v1/submissions/claim/${submissionId}`, {
         submissionId,
         reader,
       }, {
         headers: {
-          'If-Modified-Since': new Date(0),  // Disable If-Modified-Since
-          'If-None-Match': '*',      // Disable If-None-Match
+          'If-Modified-Since': new Date(0),
+          'If-None-Match': '*',
           'Cache-Control': 'no-cache',
           Pragma: 'no-cache',
         },
       })
       dispatch({ type: UPDATE_READER_SUCCESS, payload: data.submission });
-//      console.log('payload:' + JSON.stringify(data.submission))
     } catch (error) {
       console.error("Error updating submission:", error);
       dispatch({ type: UPDATE_READER_ERROR });
     }
-  };
+  }, [setLoading]);
 
-//
-// UNCLAIM SUBMISSION
-//
-
-    const unAssignSubmissionClient = async (submissionId) => {
-  setLoading();
+  // UNCLAIM SUBMISSION
+  const unAssignSubmissionClient = useCallback(async (submissionId) => {
+    setLoading();
     try {
       const { data } = await axios.patch(`api/v1/submissions/unclaim/${submissionId}`, {
         submissionId,
@@ -248,44 +218,45 @@ const passwordChange = async ({ email, password, newPassword }) => {
       console.error("Error updating submission:", error);
       dispatch({ type: UPDATE_READER_ERROR });
     }
-  };
+  }, [setLoading]);
 
-//
-// USEEFFECT
-//
+  const contextValue = useMemo(() => ({
+    ...state,
+    setLoading,
+    delegate,
+    login,
+    logout,
+    passwordChange,
+    fetchSubmissionsClient,
+    createSubmittedClient,
+    deleteSubmissionClient,
+    fetchSingleSubmission,
+    verarbeitenSubmissionClient,
+    assignSubmissionClient,
+    unAssignSubmissionClient,
+  }), [
+    state,
+    setLoading,
+    delegate,
+    login,
+    logout,
+    passwordChange,
+    fetchSubmissionsClient,
+    createSubmittedClient,
+    deleteSubmissionClient,
+    fetchSingleSubmission,
+    verarbeitenSubmissionClient,
+    assignSubmissionClient,
+    unAssignSubmissionClient
+  ]);
 
-  useEffect(() => {
-    const reader = localStorage.getItem('reader')
-    if (reader) {
-      const newReader = JSON.parse(reader)
-      dispatch({ type: LOGIN_READER_SUCCESS, payload: newReader.name })
-    }
-  }, [])
   return (
-    <AppContext.Provider
-      value={{
-        ...state,
-        setLoading,
-        delegate,
-        login,
-        logout,
-        passwordChange,
-        fetchSubmissionsClient,
-        createSubmittedClient,
-        deleteSubmissionClient,
-        fetchSingleSubmission,
-        verarbeitenSubmissionClient,
-        assignSubmissionClient,
-        unAssignSubmissionClient,
-//        rejectSubmissionClient,
-      }}
-    >
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   )
 }
 
-// 
 export const useGlobalContext = () => {
   return useContext(AppContext)
 }

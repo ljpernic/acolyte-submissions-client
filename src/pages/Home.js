@@ -16,6 +16,7 @@ function Home() {
           src={florian} 
           alt="Florian, mascot and logo of the Acolyte Submission System"
           style={{ width: '100%', height: 'auto' }}
+          className="head-space"
         />
         </div>
           <div className='info'>
@@ -69,6 +70,9 @@ const Wrapper = styled.div`
   .main-img {
     display: none;
   }
+  .head-space {
+    padding: 150px 50px 100px 50px;
+  }
   @media (min-width: 992px) {
     .container {
       grid-template-columns: 1fr 1fr;
@@ -76,6 +80,9 @@ const Wrapper = styled.div`
     }
     .main-img {
       display: block;
+    }
+    .head-space {
+      padding: 0px;
     }
   }
 `;

@@ -1,6 +1,6 @@
 //////// THIS IS THE LOGIN PAGE. WHEN YOU CLICK "LOG IN" ON HOME.JS, IT BRINGS YOU HERE. ////////
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
 import { Redirect } from 'react-router-dom';
@@ -15,11 +15,7 @@ function Login() {
     isMember: true,
   });
 
-  const { reader, delegate, login, isLoading, showAlert } = useGlobalContext();
-
-  const toggleMember = () => {
-    setValues({ ...values, isMember: !values.isMember });
-  };
+  const { reader, login, isLoading, showAlert } = useGlobalContext();
 
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
@@ -27,13 +23,11 @@ function Login() {
 
   const onSubmit = (e) => {
     e.preventDefault();
-    const { name, email, password, isMember } = values;
+    const { email, password, isMember } = values;
 
     if (isMember) {
       login({ email, password });
-    } else {
-      delegate({ name, email, password });
-    }
+    } 
   };
   const readerArray = []
   return (
@@ -57,6 +51,7 @@ function Login() {
                 name='name'
                 value={values.name}
                 handleChange={handleChange}
+                label="Name"
               />
             )}
 
@@ -66,6 +61,7 @@ function Login() {
               name='email'
               value={values.email}
               handleChange={handleChange}
+              label="Email"
             />
             {/* end of single form row */}
             {/* single form row */}
@@ -74,6 +70,7 @@ function Login() {
               name='password'
               value={values.password}
               handleChange={handleChange}
+              label="Password"
             />
             {/* end of single form row */}
             <button

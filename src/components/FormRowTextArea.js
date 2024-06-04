@@ -10,12 +10,13 @@ const FormRowTextArea = ({
   handleChange,
   horizontal,
   placeholder,
+  label,
 }) => {
   return (
     <div className='form-row'>
       {!horizontal && (
         <label htmlFor={name} className='form-label'>
-          <strong>{name}</strong>
+          <strong>{label}</strong>
         </label>
       )}
       <textarea

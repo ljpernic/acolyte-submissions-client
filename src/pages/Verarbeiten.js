@@ -79,7 +79,6 @@ function Update() {
   useEffect(() => {
     fetchSingleSubmission(id);
   }, [id]);
-
   // HANDLES VALUES FOR UPDATING AND SENDING REJECTIONS.
   useEffect(() => {
     if (verarbeitenItem) {
@@ -427,18 +426,20 @@ const handleUnclaimSubmission = async (submissionId) => {
               <br />
             <div className='action-div-top'>
             {/* SHOWS WORD COUNT VALUE IF WORD COUNT ISN'T NULL. */}
-            {values.wordCount === null ? '' : <div className='form-row action-div-WC-S'> <label htmlFor='wordCount' className='form-label'> <strong>Word Count</strong> </label> {values.wordCount} </div>}
+            {values.wordCount === null ? '' : <div className='form-row action-div-WC-S'> <label htmlFor='wordCount' className='form-label' style={{marginBottom : '10px'}}> <strong>Word Count</strong> </label> {values.wordCount} </div>}
               <div className='form-row action-div-WC-S'>
-                <label htmlFor='type' className='form-label'>
+                <label htmlFor='type' className='form-label' style={{marginBottom : '15px'}}>
                 <strong>Type</strong>
                 </label>
                   {values.type}
               </div> 
               <div className='form-row action-div-WC-S'>
-                <label htmlFor='status' className='form-label'>
+                <label htmlFor='status' className='form-label' style={{marginBottom : '20px'}}>
                 <strong>Status</strong>
                 </label>
-                  {values.status}
+                <StatusContainer className='status' status={values.status}>
+                      <strong>{values.status}</strong>
+                    </StatusContainer>
               </div> 
             </div>
               <br />
@@ -471,7 +472,7 @@ const handleUnclaimSubmission = async (submissionId) => {
       //
       */}
         <ButtonsDisplay
-          className={values.status === "Open" ? 'blue' : 'disabledBlue'}
+          className={values.status === "Open" || (values.status === "Recommended" && isEIC) ? 'blue' : 'disabledBlue'}
           type='button'
           disabled={values.status === "Open" || (values.status === "Recommended" && isEIC) ? false : true }
           onClick={() => displayComponent('testAnon')}
@@ -491,7 +492,7 @@ const handleUnclaimSubmission = async (submissionId) => {
       //
       */}
         <ButtonsDisplay
-          className={values.status === "Open" ? 'blue' : 'disabledBlue'}
+          className={values.status === "Open" || (values.status === "Recommended" && isEIC) ? 'blue' : 'disabledBlue'}
           type='button'
           disabled={values.status === "Open" || (values.status === "Recommended" && isEIC) ? false : true }
           onClick={() => displayComponent('testLow')}
@@ -504,7 +505,7 @@ const handleUnclaimSubmission = async (submissionId) => {
       //
       */}
         <ButtonsDisplay
-          className={values.status === "Open" ? 'blue' : 'disabledBlue'}
+          className={values.status === "Open" || (values.status === "Recommended" && isEIC) ? 'blue' : 'disabledBlue'}
           type='button'
           disabled={values.status === "Open" || (values.status === "Recommended" && isEIC) ? false : true }
           onClick={() => displayComponent('testMiddle')}
@@ -517,7 +518,7 @@ const handleUnclaimSubmission = async (submissionId) => {
       //
       */}
         <ButtonsDisplay
-          className={values.status === "Open" ? 'blue' : 'disabledBlue'}
+          className={values.status === "Open" || (values.status === "Recommended" && isEIC) ? 'blue' : 'disabledBlue'}
           type='button'
           disabled={values.status === "Open" || (values.status === "Recommended" && isEIC) ? false : true }
           onClick={() => displayComponent('testHigh')}
@@ -704,10 +705,12 @@ const Container = styled.section`
     margin-top: 0;
   }
   .status {
-    background: var(--grey-100);
     border-radius: var(--borderRadius);
-    border-color: transparent;
-    padding: 0.25rem;
+    text-transform: capitalize;
+    letter-spacing: var(--letterSpacing);
+    text-align: center;
+    width: 150px;
+    padding: 10px;
   }
   .back-home {
     text-align: center;
@@ -802,7 +805,7 @@ const Container = styled.section`
     align-items: center;
     justify-content: center;
     gap: 0 0.5rem;
-    margin: 0rem 2rem 0rem 2rem;
+    margin: 0px 15px 0px 10px;
   }
 
   .action-div-middle {
@@ -850,4 +853,28 @@ const Container = styled.section`
     }
   }
 `;
+
+const setStatusColor = (status) => {
+  if (status === 'Open') return '#ffffff';
+  if (status === 'Recommended') return '#ffffff';
+  if (status === 'Rejected, First Round' || status === 'Rejected, Second Round' || status === 'Rejected, Third Round'  || status === "Rejected Anonymously") return '#ffffff';
+  return '#927238';
+};
+const setStatusBackground = (status) => {
+  if (status === 'Accepted') return '#d1e7dd';
+  if (status === 'Open') return '#0096FF';
+  if (status === 'Recommended') return '#CC5500';
+  if (status === 'Rejected, First Round' || status === 'Rejected, Second Round' || status === 'Rejected, Third Round' || status === 'Rejected Anonymously') return '#811331';
+  return '#f7f3d7';
+};
+
+const StatusContainer = styled.span`
+  border-radius: var(--borderRadius);
+  text-transform: capitalize;
+  letter-spacing: var(--letterSpacing);
+  text-align: center;
+  color: ${(props) => setStatusColor(props.status)};
+  background: ${(props) => setStatusBackground(props.status)};
+`;
+
 export default Update;

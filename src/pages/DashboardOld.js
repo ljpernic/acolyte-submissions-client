@@ -1,7 +1,7 @@
 //////// PAGE
 //////// DASHBOARD SHOWING ALREADY PROCESSED STORIES. ////////
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
 import Navbar from '../components/Navbar';
@@ -9,11 +9,20 @@ import ButtonsBottom from '../components/ButtonsBottom';
 import SubmissionsCombined from '../components/SubmissionsCombined';
 
 function DashboardOld() {
-  const { showAlert, fetchSubmissionsClient } = useGlobalContext();
-
-  useEffect(() => {
+  const { showAlert, isLoading, fetchSubmissionsClient } = useGlobalContext();
+  
+  const fetchSubmissions = useCallback(() => {
     fetchSubmissionsClient();
-  }, []);
+  }, [fetchSubmissionsClient]);
+  
+  useEffect(() => {
+    fetchSubmissions();
+  }, [fetchSubmissions]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <>
       <Navbar />                              
@@ -23,8 +32,8 @@ function DashboardOld() {
             Something went wrong. Please try again. 
           </div>
         )}
-        {console.log("Old triggered.")}
         <SubmissionsCombined dashboardType="old" />
+        {console.log("Old triggered.")}
       </Wrapper>
       <ButtonsBottom />
     </>

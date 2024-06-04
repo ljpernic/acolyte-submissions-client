@@ -1,6 +1,3 @@
-//////// CONTEXT
-//////// SETS THE STATE BASED ON ACTIONS (IF SUCCESSFUL, IF ERROR, ETC //////// 
-
 import {
   DELEGATE_SUCCESS,
   DELEGATE_ERROR,
@@ -21,164 +18,147 @@ import {
   VERARBEITEN_SUBMISSION_SUCCESS,
   UPDATE_READER_SUCCESS,
   UPDATE_READER_ERROR,
-} from './actions'
+} from './actions';
 
 const reducer = (state, action) => {
-  if (action.type === SET_LOADING) {
-    return { ...state, isLoading: true, showAlert: false, verarbeitenComplete: false }
-  }
+  switch (action.type) {
+    case SET_LOADING:
+      return { 
+        ...state, 
+        isLoading: true
+      };
 
-  // DELEGATE REDUCER //
-  if (action.type === DELEGATE_SUCCESS) {
-    return {
-      ...state,
-      isLoading: false,
-      reader: action.payload,
-    }
-  }
-  if (action.type === DELEGATE_ERROR) {
-    return {
-      ...state,
-      isLoading: false,
-      reader: null,
-      showAlert: true,
-      errorMessage: action.payload ? action.payload.error : 'Unknown error occurred',
-    }
-  }
+    case DELEGATE_SUCCESS:
+      return {
+        ...state,
+        showAlert: false,
+        reader: action.payload,
+      };
 
-  // DELEGATE REDUCER //
-  if (action.type === LOGIN_READER_SUCCESS) {
-    return {
-      ...state,
-      isLoading: false,
-      reader: action.payload,
-    }
-  }
-  if (action.type === LOGIN_READER_ERROR) {
-    return {
-      ...state,
-      isLoading: false,
-      reader: null,
-      showAlert: true,
-    }
-  }
+    case DELEGATE_ERROR:
+      return {
+        ...state,
+        reader: null,
+        showAlert: true,
+        errorMessage: action.payload?.error || 'Unknown error occurred',
+      };
 
-  // CHANGE PASSWORD REDUCER //
-  if (action.type === PASSWORD_CHANGE_SUCCESS) {
-    return {
-      ...state,
-      isLoading: false,
-      reader: action.payload,
-    }
-  }
-  if (action.type === PASSWORD_CHANGE_ERROR) {
-    return {
-      ...state,
-      isLoading: false,
-      reader: null,
-      showAlert: true,
-    }
-  }
+    case LOGIN_READER_SUCCESS:
+      return {
+        ...state,
+        showAlert: false,
+        reader: action.payload,
+      };
 
-  // LOGIN AND LOGOUT REDUCER // 
-  if (action.type === LOGOUT_READER) {
-    return {
-      ...state,
-      reader: null,
-      showAlert: false,
-      submissions: [],
-      isVerarbeitening: false,
-      verarbeitenItem: null,   
-      downloadItem: null,
-    }
-  }
+    case LOGIN_READER_ERROR:
+      return {
+        ...state,
+        reader: null,
+        showAlert: true,
+      };
 
-// FETCH SUBMISSIONS REDUCER // 
-if (action.type === FETCH_SUBMISSIONS_SUCCESS) {
-  return {
-    ...state,
-    isLoading: false,
-    verarbeitenItem: null,
-    singleSubmissionError: false,
-    submissions: action.payload,
-  }
-}
-if (action.type === FETCH_SUBMISSIONS_ERROR) {
-  return { ...state, isLoading: false }
-}
+    case PASSWORD_CHANGE_SUCCESS:
+      return {
+        ...state,
+        isLoading: false,
+        showAlert: false,
+        reader: action.payload,
+      };
 
-  // CREATE SUBMISSION REDUCER //
-  if (action.type === CREATE_SUBMISSION_SUCCESS) {
-    return {
-      ...state,
-      isLoading: false,
-      submissions: [...state.submissions, action.payload],
-    }
-  }
-  if (action.type === CREATE_SUBMISSION_ERROR) {
-    return {
-      ...state,
-      isLoading: false,
-      showAlert: true,
-    }
-  }
+    case PASSWORD_CHANGE_ERROR:
+      return {
+        ...state,
+        isLoading: false,
+        showAlert: true,
+        alertText: action.payload,  // Store the error message
+      };
 
-  // DELETE SUBMISSION REDUCER // 
-  if (action.type === DELETE_SUBMISSION_ERROR) {
-    return {
-      ...state,
-      isLoading: false,
-      showAlert: true,
-    }
-  }
+    case LOGOUT_READER:
+      return {
+        ...state,
+        reader: null,
+        showAlert: false,
+        submissions: [],
+        isVerarbeitening: false,
+        verarbeitenItem: null,
+        downloadItem: null,
+      };
 
-  // FETCH SINGLE SUBMISSION REDUCER //
-  if (action.type === FETCH_SINGLE_SUBMISSION_SUCCESS) {
-    return { ...state, isLoading: false, verarbeitenItem: action.payload }
-  }
-  if (action.type === FETCH_SINGLE_SUBMISSION_ERROR) {
-    return { ...state, isLoading: false, verarbeitenItem: '', singleSubmissionError: true }
-  }
+    case FETCH_SUBMISSIONS_SUCCESS:
+      return {
+        ...state,
+        isLoading: false,
+        verarbeitenItem: null,
+        singleSubmissionError: false,
+        showAlert: false,
+        submissions: action.payload,
+      };
 
-  // VERARBEITEN (PROCESS) SUBMISSION REDUCER // 
-  if (action.type === VERARBEITEN_SUBMISSION_SUCCESS) {
-    return {
-      ...state,
-      isLoading: false,
-      verarbeitenComplete: true,
-      verarbeitenItem: action.payload,
-    }
-  }
-  if (action.type === VERARBEITEN_SUBMISSION_ERROR) {
-    return {
-      ...state,
-      isLoading: false,
-      verarbeitenComplete: true,
-      showAlert: true,
-    }
-  }
+    case FETCH_SUBMISSIONS_ERROR:
+      return { ...state, isLoading: false };
 
-  // ASSIGN (CLAIM) SUBMISSION REDUCER // 
-  if (action.type === UPDATE_READER_SUCCESS) {
-    return {
-      ...state,
-      isLoading: false,
-      verarbeitenComplete: true,
-      verarbeitenItem: action.payload,
-    }
+    case CREATE_SUBMISSION_SUCCESS:
+      return {
+        ...state,
+        isLoading: false,
+        submissions: [...state.submissions, action.payload],
+      };
+
+    case CREATE_SUBMISSION_ERROR:
+      return {
+        ...state,
+        isLoading: false,
+        showAlert: true,
+      };
+
+    case DELETE_SUBMISSION_ERROR:
+      return {
+        ...state,
+        isLoading: false,
+        showAlert: true,
+      };
+
+    case FETCH_SINGLE_SUBMISSION_SUCCESS:
+      return { ...state, isLoading: false, verarbeitenItem: action.payload };
+
+    case FETCH_SINGLE_SUBMISSION_ERROR:
+      return { ...state, isLoading: false, verarbeitenItem: '', singleSubmissionError: true };
+
+    case VERARBEITEN_SUBMISSION_SUCCESS:
+      return {
+        ...state,
+        isLoading: false,
+        verarbeitenComplete: true,
+        verarbeitenItem: action.payload,
+      };
+
+    case VERARBEITEN_SUBMISSION_ERROR:
+      return {
+        ...state,
+        isLoading: false,
+        verarbeitenComplete: true,
+        showAlert: true,
+      };
+
+    case UPDATE_READER_SUCCESS:
+      return {
+        ...state,
+        isLoading: false,
+        verarbeitenComplete: true,
+        verarbeitenItem: action.payload,
+      };
+
+    case UPDATE_READER_ERROR:
+      return {
+        ...state,
+        isLoading: false,
+        verarbeitenComplete: true,
+        showAlert: true,
+      };
+
+    default:
+      return state;
   }
-  if (action.type === UPDATE_READER_ERROR) {
-    return {
-      ...state,
-      isLoading: false,
-      verarbeitenComplete: true,
-      showAlert: true,
-    }
-  }
+};
 
-
-  // ERROR WARNING //
-  throw new Error(`no such action : ${action}`)
-}
-
-export default reducer
+export default reducer;

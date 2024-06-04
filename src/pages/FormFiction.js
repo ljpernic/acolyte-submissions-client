@@ -161,6 +161,7 @@ return (
                 value={values.name}
                 placeholder='What should we call you?'
                 handleChange={handleChange}
+                label="Name"
               />
             {/* email field */}
             <FormRow
@@ -169,6 +170,7 @@ return (
               value={values.email}
               placeholder='How can we reach you?'
               handleChange={handleChange}
+              label="Email"
             />
             <FormRow
               type='email'
@@ -176,6 +178,7 @@ return (
               value={values.confirmEmail}
               placeholder='Confirm your email.'
               handleChange={handleChange}
+              label="Confirm Email"
             />
             {/* title field */}
             <FormRow
@@ -184,6 +187,7 @@ return (
               value={values.title}
               placeholder="What's the title of your submission?"
               handleChange={handleChange}
+              label="title"
             />
             {/* type field */}
             <div className='form-row'>
@@ -203,6 +207,7 @@ return (
               value={values.wordCount}
               placeholder='How many words is your submission?'
               handleChange={handleChange}
+              label="Word Count"
             />
             {/* file field */}
             <FormRow
@@ -211,6 +216,7 @@ return (
               value={values.file}
               accept='.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.rtf, application/rtf, .odt'
               handleChange={handleChange}
+              label="File"
             />
             {/* cover letter field */}
             <FormRowTextArea
@@ -219,6 +225,7 @@ return (
               value={values.coverLetter}
               placeholder='Please tell us a little about yourself.'
               handleChange={handleChange}
+              label="Cover Letter"
             />
             {/* end of single form row */}
             <button

@@ -12,5 +12,6 @@ import FormNonfiction from './FormNonfiction'
 import Verarbeiten from './Verarbeiten'
 import Error from './Error'
 import Submitted from './Submitted'
+import PasswordChangeSuccess from './PasswordChangeSuccess'
 import PrivateRoute from './PrivateRoute'
-export { Home, Login, Delegate, PasswordChange, DashboardClaimed, DashboardRecommended, DashboardUnclaimed, DashboardOld, FormFiction, FormPoetry, FormNonfiction, Verarbeiten, Submitted, Error, PrivateRoute }
+export { Home, Login, Delegate, PasswordChange, DashboardClaimed, DashboardRecommended, DashboardUnclaimed, DashboardOld, FormFiction, FormPoetry, FormNonfiction, Verarbeiten, Submitted, PasswordChangeSuccess, Error, PrivateRoute }

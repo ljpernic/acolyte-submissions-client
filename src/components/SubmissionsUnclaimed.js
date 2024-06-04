@@ -156,7 +156,8 @@ const Container = styled.section`
     text-transform: capitalize;
     letter-spacing: var(--letterSpacing);
     text-align: center;
-    width: 100px;
+    width: 150px;
+    padding: 10px;
   }
   .verarbeiten-btn {
     color: var(--primary-600);
@@ -310,13 +311,16 @@ const Pagination = styled.section`
 `;
 
 const setStatusColor = (status) => {
-  if (status === 'interview') return '#0f5132';
-  if (status === 'declined') return '#842029';
+  if (status === 'Open') return '#ffffff';
+  if (status === 'Recommended') return '#ffffff';
+  if (status === 'Rejected, First Round' || status === 'Rejected, Second Round' || status === 'Rejected, Third Round') return '#ffffff';
   return '#927238';
 };
 const setStatusBackground = (status) => {
   if (status === 'Accepted') return '#d1e7dd';
-  if (status === 'Rejected, First Round' || status === 'Rejected, Second Round' || status === 'Rejected, Third Round') return '#f8d7da';
+  if (status === 'Open') return '#0096FF';
+  if (status === 'Recommended') return '#CC5500';
+  if (status === 'Rejected, First Round' || status === 'Rejected, Second Round' || status === 'Rejected, Third Round') return '#811331';
   return '#f7f3d7';
 };
 
@@ -328,4 +332,5 @@ const StatusContainer = styled.span`
   color: ${(props) => setStatusColor(props.status)};
   background: ${(props) => setStatusBackground(props.status)};
 `;
+
 export default SubmissionsUnclaimed;

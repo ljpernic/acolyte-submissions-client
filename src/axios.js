@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-axios.defaults.baseURL = 'http://localhost:5000/';
+// BASE URL. MUST MATCH PORT IN SERVER/APP.JS!
+axios.defaults.baseURL = "http://localhost:5000";             // FOR TESTING
+//axios.defaults.baseURL = process.env.REACT_APP_BASE_URL;    // FOR PRODUCTION
+
 axios.defaults.headers.common['Cache-Control'] = 'no-cache';
 
 // Request interceptor
@@ -30,7 +33,7 @@ axios.interceptors.request.use((config) => {
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401 || 409) {
+    if (error.response && (error.response.status === 401 || 409)) {
       // Handle 401 error, possibly by redirecting to login
       // or showing a login modal.
       console.error('Authentication failed:', error.response);

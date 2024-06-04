@@ -11,12 +11,13 @@ const FormRow = ({
   handleChange,
   horizontal,
   placeholder,
+  label,
 }) => {
   return (
     <div className='form-row'>
       {!horizontal && (
         <label htmlFor={name} className='form-label'>         {/* KEYS LAVEL TO NAME VALUE */}
-          <strong>{name}</strong>                             {/* DYNAMICALLY DISPLAYS NAME */}
+          <strong>{label}</strong>                             {/* DYNAMICALLY DISPLAYS NAME */}
         </label>
       )}
       <input

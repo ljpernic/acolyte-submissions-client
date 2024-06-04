@@ -11,37 +11,37 @@ import useAuth from '../hooks/useAuth.js';
 
 const Navbar = () => {
   const { reader, logout } = useGlobalContext();
-  const [showLogout, setShowLogout] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   const { decodedName, topStatus } = useAuth();
 
   return (
     <Wrapper>
       <div className='nav-center'>
-        <div>  
+        <div>
           <Link to={!reader ? '/' : '/dashboard-claimed'}>
-          <img 
-          src={florian} 
-          alt="Florian, mascot and logo of the Acolyte Submission System"
-          style={{ width: '100%', height: 'auto', marginTop: '30px' }}
-        />
-          </Link>
+            <img 
+              src={florian} 
+              alt="Florian, mascot and logo of the Acolyte Submission System"
+              style={{ width: '100%', height: 'auto', marginTop: '30px' }}
+            />
+          </Link> <br />
         </div>
         <div className='reader-header'>
           {topStatus}          
         </div>
-                                                                                      {/* IF READER EXISTS, DISPLAYS */}
+        
         {reader && (    
-          <div className='btn-container'>                                             {/* DIV STYLED AS BUTTON. */}
-            <button className='btn' onClick={() => setShowLogout(!showLogout)}>       {/* WHEN BUTTON IS CLICKED, SHOWS LOGOUT OPTION. */}
-              <FaUserCircle />                                                        {/* ICON SHOWS IT'S A READER. */}
-              {decodedName}                                                           {/* READER NAME SET DYNAMICALLY THROUGH USEAUTH(). */}
-              <FaCaretDown />                                                         {/* DOWN ARROW FOR STYLE. */}
+          <div className='btn-container'>
+            <button className='btn' onClick={() => setShowMenu(!showMenu)}>
+              <FaUserCircle />
+              {decodedName}
+              <FaCaretDown />
             </button>
-            <div className={showLogout ? 'dropdown show-dropdown' : 'dropdown'}>      {/* SHOWS LOGOUT DIV. */}
-              <button onClick={() => logout()} className='dropdown-btn'>              {/* LOGS THE USER OUT.*/}
-                logout
-              </button>
+            {/* Menu with logout and change password options */}
+            <div className={showMenu ? 'dropdown show-dropdown' : 'dropdown'}>
+              <Link to="/change-password" className='dropdown-btn'>Change Password</Link> <br /><br />
+              <button onClick={() => logout()} className='dropdown-btn'>Logout</button>
             </div>
           </div>
         )}

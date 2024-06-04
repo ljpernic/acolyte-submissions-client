@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import { Home, DashboardClaimed, DashboardRecommended, DashboardUnclaimed, DashboardOld, Login, PasswordChange, FormFiction, FormPoetry, FormNonfiction, Delegate, Verarbeiten, Error, Submitted, PrivateRoute } from './pages';
+import { Home, DashboardClaimed, DashboardRecommended, DashboardUnclaimed, DashboardOld, Login, PasswordChange, FormFiction, FormPoetry, FormNonfiction, Delegate, Verarbeiten, Error, Submitted, PasswordChangeSuccess, PrivateRoute } from './pages';
 
 function App() {
   return (
@@ -34,6 +34,9 @@ function App() {
         </Route>
         <Route path='/submitted'>
           <Submitted />
+        </Route>
+        <Route path='/change-password-success'>
+          <PasswordChangeSuccess />
         </Route>
         <PrivateRoute path='/delegate'>
           <Delegate />

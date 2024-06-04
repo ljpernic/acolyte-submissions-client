@@ -27,19 +27,19 @@ const ButtonsBottom = () => {
                                                                                     {/* CLAIMED DASHBOARD BUTTON */}
         <div>  
           <Link to='/dashboard-claimed' className='btn hero-btn'>
-              Current Queue
+              Claimed
             </Link>
         </div>
                                                                                     {/* PROCESSED DASHBOARD BUTTON */}
         <div>  
           <Link to='/dashboard-old' className='btn hero-btn'>
-              Old Queue
+              Processed
             </Link>
         </div>
                                                                                     {/* UNCLAIMED DASHBOARD BUTTON */}
         <div>  
           <Link to='/dashboard-unclaimed' className='btn hero-btn'>
-              Open Queue
+              Unclaimed
             </Link>
         </div>
       </div>

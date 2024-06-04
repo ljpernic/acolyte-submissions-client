@@ -1,7 +1,7 @@
 //////// PAGE
 //////// FORM TO ADD READER (EIC ONLY). ////////
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
 import { Redirect } from 'react-router-dom';
@@ -22,9 +22,7 @@ function Delegate() {
   const { isEIC } = useAuth();
 
   const { reader, delegate, login, isLoading, showAlert } = useGlobalContext();
-  const toggleMember = () => {
-    setValues({ ...values, isMember: !values.isMember });
-  };
+
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
   };
@@ -66,6 +64,7 @@ function Delegate() {
                 name='name'
                 value={values.name}
                 handleChange={handleChange}
+                label="Name"
               />
             )}
 
@@ -75,6 +74,7 @@ function Delegate() {
               name='email'
               value={values.email}
               handleChange={handleChange}
+              label="Email"
             />
             {/* end of single form row */}
             {/* single form row */}
@@ -83,6 +83,7 @@ function Delegate() {
               name='password'
               value={values.password}
               handleChange={handleChange}
+              label="Password"
             />
             <div className='form-row'>
               {(
@@ -97,12 +98,12 @@ function Delegate() {
               <option value="EIC">Editor-in-Chief</option>
             </select>
           </div>
-            <FormRow
+            {/* <FormRow
               type='role'
               name='role'
               value={values.role}
               handleChange={handleChange}
-            />
+            /> */}
             {/* end of single form row */}
             <button
               type='submit'

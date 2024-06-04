@@ -1,7 +1,7 @@
 //////// PAGE
 //////// DASHBOARD SHOWING CLAIMED STORIES. ////////
 
-import { useEffect } from 'react';
+import { useMemo, useEffect } from 'react';
 import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
 import Navbar from '../components/Navbar';
@@ -9,11 +9,22 @@ import ButtonsBottom from '../components/ButtonsBottom';
 import SubmissionsCombined from '../components/SubmissionsCombined';
 
 function DashboardClaimed() {
-  const { showAlert, fetchSubmissionsClient } = useGlobalContext();
+  const { showAlert, isLoading, fetchSubmissionsClient } = useGlobalContext();
 
+  const fetchSubmissions = useMemo(() => {
+    return () => {
+      fetchSubmissionsClient();
+    };
+  }, [fetchSubmissionsClient]);
+  
   useEffect(() => {
-    fetchSubmissionsClient();
-  }, []);
+    fetchSubmissions();
+  }, [fetchSubmissions]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <>
       <Navbar />
@@ -23,8 +34,8 @@ function DashboardClaimed() {
             Something went wrong. Please try again. 
           </div>
         )}
+        <SubmissionsCombined dashboardType="claimed" />     
         {console.log("Claimed triggered.")}
-        <SubmissionsCombined dashboardType="claimed" />
       </Wrapper>
       <ButtonsBottom />
     </>

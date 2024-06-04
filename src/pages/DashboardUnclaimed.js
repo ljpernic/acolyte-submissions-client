@@ -1,7 +1,7 @@
 //////// PAGE
 //////// DASHBOARD SHOWING ALREADY UNCLAIMED STORIES. ////////
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
 import Navbar from '../components/Navbar';
@@ -9,11 +9,20 @@ import ButtonsBottom from '../components/ButtonsBottom';
 import SubmissionsUnclaimed from '../components/SubmissionsUnclaimed';
 
 function DashboardUnclaimed() {
-  const { showAlert, fetchSubmissionsClient } = useGlobalContext();
-
-  useEffect(() => {
+  const { showAlert, isLoading, fetchSubmissionsClient } = useGlobalContext();
+  
+  const fetchSubmissions = useCallback(() => {
     fetchSubmissionsClient();
-  }, []);
+  }, [fetchSubmissionsClient]);
+  
+  useEffect(() => {
+    fetchSubmissions();
+  }, [fetchSubmissions]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <>
       <Navbar />

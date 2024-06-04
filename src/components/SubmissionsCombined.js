@@ -1,43 +1,52 @@
 //////// COMPONENT
 //////// RETURNS SUBMISSIONS FOR LOGGED-IN READER BASED ON ENTRY STATUS AND READER ////////
 
-import { useGlobalContext } from '../context/appContext';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
 import SubmissionColumns from './SubmissionColumns';
+import { useGlobalContext } from '../context/appContext';
 
 const SubmissionsCombined = ({ dashboardType }) => {
   const { submissions, isLoading } = useGlobalContext();
   const itemsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
 
+  const filteredSubmissions = useMemo(() => {
+    return submissions.filter(entry => {
+      switch (dashboardType) {
+        case 'claimed':
+          return entry.status === 'Open' && entry.reader !== 'unclaimed';
+        case 'old':
+          return entry.status !== 'Open';
+        case 'recommended':
+          return entry.status === 'Recommended' && entry.reader !== 'unclaimed';
+        case 'unclaimed':
+          return entry.reader === 'unclaimed';
+        default:
+          return false;
+      }
+    });
+  }, [dashboardType, submissions]);
+
+  const displayedSubmissions = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredSubmissions.slice(startIndex, endIndex);
+  }, [currentPage, filteredSubmissions, itemsPerPage]);
+
+  const totalPages = useMemo(() => Math.ceil(filteredSubmissions.length / itemsPerPage), [filteredSubmissions, itemsPerPage]);
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
   if (isLoading) {
     return <div className='loading'></div>;
   }
 
-  // ASSIGNS CASE BASED ON STATUS AND READER
-  let filteredSubmissions = [];
-  switch (dashboardType) {
-    case 'claimed':
-      filteredSubmissions = submissions.filter(entry => entry.status === "Open" && entry.reader !== "unclaimed");
-      break;
-    case 'old':
-      filteredSubmissions = submissions.filter(entry => entry.status !== "Open");
-      break;
-    case 'recommended':
-      filteredSubmissions = submissions.filter(entry => entry.status === "Recommended" && entry.reader !== "unclaimed");
-      break;
-    case 'unclaimed':
-      filteredSubmissions = submissions.filter(entry => entry.reader === "unclaimed");
-      break;
-    default:
-      filteredSubmissions = [];
-  }
-
-  // IF NO FILTERED SUBMISSIONS, SHOWS EMPTY QUEUE MESSAGE
-  if (filteredSubmissions.length < 1) {
+  if (filteredSubmissions.length === 0) {
     return (
       <EmptyContainer>
         <h5>
@@ -47,28 +56,14 @@ const SubmissionsCombined = ({ dashboardType }) => {
     );
   }
 
-  // CALCUATES INDEX RANGE FOR CURRENT PAGE
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  
-  // SLICES FILTERED SUBMUSSIONS ARRAY TO DISPLAY ONLY CURRENT PAGE
-  const displayedSubmissions = filteredSubmissions.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
-
-  // HANDLES PAGE CHANGE
-  const handlePageChange = (newPage) => {
-    setCurrentPage(newPage);
-  };
-
   return (
     <>
       <SubmissionColumns />
       <Container>
         {displayedSubmissions.map((item) => {
           const { _id: id, name, title, type, wordCount, status, createdAt } = item;
-          let date = moment(createdAt);
-          date = date.format('MMMM Do, YYYY');
-          if (item.status) {
+          const date = moment(createdAt).format('MMMM Do, YYYY');
+          if (status) {
             return (
               <Link key={id} to={`/verarbeiten/${id}`} className='bigButton'>
                 <article>
@@ -77,7 +72,7 @@ const SubmissionsCombined = ({ dashboardType }) => {
                     <span className='position'>{name}</span>
                     <span className='centerPosition'>{wordCount !== null ? wordCount : 'POEM'}</span>
                     <StatusContainer className='status' status={status}>
-                      {status}
+                      <strong>{status}</strong>
                     </StatusContainer>
                     <span className='centerPosition'>{type}</span>
                     <span className='date'>{date}</span>
@@ -87,7 +82,7 @@ const SubmissionsCombined = ({ dashboardType }) => {
               </Link>
             );
           } else {
-            return (null);
+            return null;
           }
         })}
       </Container>
@@ -158,7 +153,8 @@ span {
   text-transform: capitalize;
   letter-spacing: var(--letterSpacing);
   text-align: center;
-  width: 100px;
+  width: 150px;
+  padding: 10px;
 }
 .verarbeiten-btn {
   color: var(--primary-600);
@@ -246,7 +242,7 @@ span {
     border-radius: 0;
     justify-content: left;
     text-align: left;
-    grid-template-columns: repeat(2, 3fr) repeat(4, 1fr);
+    grid-template-columns: repeat(2, 4fr) repeat(4, 1fr);
     align-items: center;
     padding: 1rem 1.5rem;
     column-gap: 1rem;
@@ -306,13 +302,16 @@ const Pagination = styled.section`
 `;
 
 const setStatusColor = (status) => {
-  if (status === 'interview') return '#0f5132';
-  if (status === 'declined') return '#842029';
+  if (status === 'Open') return '#ffffff';
+  if (status === 'Recommended') return '#ffffff';
+  if (status === 'Rejected, First Round' || status === 'Rejected, Second Round' || status === 'Rejected, Third Round' || status === "Rejected Anonymously") return '#ffffff';
   return '#927238';
 };
 const setStatusBackground = (status) => {
   if (status === 'Accepted') return '#d1e7dd';
-  if (status === 'Rejected, First Round' || status === 'Rejected, Second Round' || status === 'Rejected, Third Round') return '#f8d7da';
+  if (status === 'Open') return '#0096FF';
+  if (status === 'Recommended') return '#CC5500';
+  if (status === 'Rejected, First Round' || status === 'Rejected, Second Round' || status === 'Rejected, Third Round' || status === "Rejected Anonymously") return '#811331';
   return '#f7f3d7';
 };
 
