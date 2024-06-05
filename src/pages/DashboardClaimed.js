@@ -1,85 +1,86 @@
-//////// PAGE
-//////// DASHBOARD SHOWING CLAIMED STORIES. ////////
+// //////// PAGE
+// //////// DASHBOARD SHOWING CLAIMED STORIES. //////// 
+// //////// ORIGINAL DASHBOARD. KEEPING IN CASE I HAVE TO REFER BACK TO IT.
 
-import { useMemo, useEffect } from 'react';
-import styled from 'styled-components';
-import { useGlobalContext } from '../context/appContext';
-import Navbar from '../components/Navbar';
-import ButtonsBottom from '../components/ButtonsBottom';
-import SubmissionsCombined from '../components/SubmissionsCombined';
+// import { useMemo, useEffect } from 'react';
+// import styled from 'styled-components';
+// import { useGlobalContext } from '../context/appContext';
+// import Navbar from '../components/Navbar';
+// import ButtonsBottom from '../components/ButtonsBottom';
+// import SubmissionsCombined from '../components/SubmissionsCombined';
 
-function DashboardClaimed() {
-  const { showAlert, isLoading, fetchSubmissionsClient } = useGlobalContext();
+// function DashboardClaimed() {
+//   const { showAlert, isLoading, fetchSubmissionsClient } = useGlobalContext();
 
-  const fetchSubmissions = useMemo(() => {
-    return () => {
-      fetchSubmissionsClient();
-    };
-  }, [fetchSubmissionsClient]);
+//   const fetchSubmissions = useMemo(() => {
+//     return () => {
+//       fetchSubmissionsClient();
+//     };
+//   }, [fetchSubmissionsClient]);
   
-  useEffect(() => {
-    fetchSubmissions();
-  }, [fetchSubmissions]);
+//   useEffect(() => {
+//     fetchSubmissions();
+//   }, [fetchSubmissions]);
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+//   if (isLoading) {
+//     return <div>Loading...</div>;
+//   }
 
-  return (
-    <>
-      <Navbar />
-      <Wrapper className='page'>
-        {showAlert && (
-          <div className='alert alert-danger'>
-            Something went wrong. Please try again. 
-          </div>
-        )}
-        <SubmissionsCombined dashboardType="claimed" />     
-        {console.log("Claimed triggered.")}
-      </Wrapper>
-      <ButtonsBottom />
-    </>
-  );
-}
+//   return (
+//     <>
+//       <Navbar />
+//       <Wrapper className='page'>
+//         {showAlert && (
+//           <div className='alert alert-danger'>
+//             Something went wrong. Please try again. 
+//           </div>
+//         )}
+//         <SubmissionsCombined dashboardType="claimed" />     
+//         {console.log("Claimed triggered.")}
+//       </Wrapper>
+//       <ButtonsBottom />
+//     </>
+//   );
+// }
 
-const Wrapper = styled.section`
-  padding: 2rem 0;
+// const Wrapper = styled.section`
+//   padding: 2rem 0;
 
-  .submission-form {
-    background: var(--white);
-    display: grid;
-    row-gap: 1rem;
-    column-gap: 0.5rem;
-    align-items: center;
-    margin-bottom: 3rem;
-    border-radius: var(--borderRadius);
-    padding: 1.5rem;
-    .form-input {
-      padding: 0.75rem;
-    }
+//   .submission-form {
+//     background: var(--white);
+//     display: grid;
+//     row-gap: 1rem;
+//     column-gap: 0.5rem;
+//     align-items: center;
+//     margin-bottom: 3rem;
+//     border-radius: var(--borderRadius);
+//     padding: 1.5rem;
+//     .form-input {
+//       padding: 0.75rem;
+//     }
 
-    .form-input:focus {
-      outline: 1px solid var(--primary-500);
-    }
-    .form-row {
-      margin-bottom: 0;
-    }
-    .btn {
-      padding: 0.75rem;
-    }
-    @media (min-width: 776px) {
-      grid-template-columns: 1fr 1fr auto;
-      .btn {
-        height: 100%;
-        padding: 0 2rem;
-      }
-      column-gap: 2rem;
-    }
-  }
-  .alert {
-    max-width: var(--max-width);
-    margin-bottom: 1rem;
-  }
-`;
+//     .form-input:focus {
+//       outline: 1px solid var(--primary-500);
+//     }
+//     .form-row {
+//       margin-bottom: 0;
+//     }
+//     .btn {
+//       padding: 0.75rem;
+//     }
+//     @media (min-width: 776px) {
+//       grid-template-columns: 1fr 1fr auto;
+//       .btn {
+//         height: 100%;
+//         padding: 0 2rem;
+//       }
+//       column-gap: 2rem;
+//     }
+//   }
+//   .alert {
+//     max-width: var(--max-width);
+//     margin-bottom: 1rem;
+//   }
+// `;
 
-export default DashboardClaimed;
+// export default DashboardClaimed;

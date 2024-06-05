@@ -1,18 +1,21 @@
 //////// PAGE
-//////// DASHBOARD SHOWING ALREADY RECOMMENDED STORIES (EIC ONLY). ////////
+//////// DASHBOARD SHOWING ALL CLAIMED STORIES, BUT SORTED BY STATUS AND DASHBOARDTYPE. ////////
 
-import { useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
 import Navbar from '../components/Navbar';
 import ButtonsBottom from '../components/ButtonsBottom';
 import SubmissionsCombined from '../components/SubmissionsCombined';
 
-function DashboardRecommended() {
+function DashboardAll() {
   const { showAlert, isLoading, fetchSubmissionsClient } = useGlobalContext();
-  
-  const fetchSubmissions = useCallback(() => {
-    fetchSubmissionsClient();
+  const [dashboardType, setDashboardType] = useState("claimed"); // Default dashboard type
+
+  const fetchSubmissions = useMemo(() => {
+    return () => {
+      fetchSubmissionsClient();
+    };
   }, [fetchSubmissionsClient]);
   
   useEffect(() => {
@@ -32,10 +35,10 @@ function DashboardRecommended() {
             Something went wrong. Please try again. 
           </div>
         )}
-        <SubmissionsCombined dashboardType="recommended" />
-        {console.log("Rec triggered.")}
+        <SubmissionsCombined dashboardType={dashboardType} />     
+        {console.log("Dashboard triggered: " + dashboardType)}
       </Wrapper>
-      <ButtonsBottom />
+      <ButtonsBottom setDashboardType={setDashboardType} />
     </>
   );
 }
@@ -80,4 +83,4 @@ const Wrapper = styled.section`
   }
 `;
 
-export default DashboardRecommended;
+export default DashboardAll;

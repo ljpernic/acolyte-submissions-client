@@ -1,10 +1,12 @@
 import axios from 'axios'
 import '../axios'
+import throttle from 'lodash/throttle'; 
+
 import React, { useContext, useEffect, useReducer, useMemo, useCallback } from 'react'
 import {                                                                        // IMPORTS GLOBAL VALUES SET IN ACTIONS.JS CONTEXT.
   SET_LOADING,
-  DELEGATE_SUCCESS,
-  DELEGATE_ERROR,
+  ADD_READER_SUCCESS,
+  ADD_READER_ERROR,
   LOGOUT_READER,
   LOGIN_READER_SUCCESS,
   LOGIN_READER_ERROR,
@@ -53,23 +55,28 @@ const AppProvider = ({ children }) => {                                       //
     dispatch({ type: SET_LOADING });
   }, []);
 
-  // DELEGATE
-  const delegate = useCallback(async (readerInput) => {
+  // DEFINE THROTTLING
+  const memoizedThrottledGet = useMemo(() => throttle(axios.get, 100), []);
+  const memoizedThrottledPost = useMemo(() => throttle(axios.post, 100), []);
+  const memoizedThrottledPatch = useMemo(() => throttle(axios.patch, 100), []);
+
+  // ADD READER
+  const addReader = useCallback(async (readerInput) => {
     setLoading()
     try {
-      const { data } = await axios.post(`api/v1/auth/delegate`, {
+      const { data } = await memoizedThrottledPost(`api/v1/auth/add-reader`, {
         ...readerInput,
       })
-      const delegatePayload = [data.reader.name]
-      dispatch({ type: DELEGATE_SUCCESS, payload: delegatePayload })
+      const addReaderPayload = [data.reader.name]
+      dispatch({ type: ADD_READER_SUCCESS, payload: addReaderPayload })
       localStorage.setItem(
         'reader',
         JSON.stringify({ name: data.reader.name, token: data.token })
       )
     } catch (error) {
-      dispatch({ type: DELEGATE_ERROR, payload: { error: 'Your error message here' } });
+      dispatch({ type: ADD_READER_ERROR, payload: { error: 'Your error message here' } });
     }
-  }, [setLoading]);
+  }, [setLoading, memoizedThrottledPost]);
 
   // CHANGE PASSWORD
   const passwordChange = useCallback(async ({ email, password, newPassword }) => {
@@ -78,7 +85,7 @@ const AppProvider = ({ children }) => {                                       //
       if (newPassword.length < 8) {
         throw new Error('New password must be at least 8 characters long.');
       }
-      const { data } = await axios.post(`/api/v1/auth-pw/change-password`, {
+      const { data } = await memoizedThrottledPost(`/api/v1/auth-pw/change-password`, {
         email,
         password,
         newPassword,
@@ -90,13 +97,13 @@ const AppProvider = ({ children }) => {                                       //
       dispatch({ type: PASSWORD_CHANGE_ERROR, payload: errorMessage });
       throw new Error(errorMessage);
     }
-  }, [setLoading]);
+  }, [setLoading, memoizedThrottledPost]);
 
   // LOGIN
   const login = useCallback(async (readerInput) => {
     setLoading()
     try {
-      const { data } = await axios.post(`api/v1/auth/login`, {
+      const { data } = await memoizedThrottledPost(`api/v1/auth/login`, {
         ...readerInput,
       })
       const loginPayload = [data.reader.name]
@@ -108,7 +115,7 @@ const AppProvider = ({ children }) => {                                       //
     } catch (error) {
       dispatch({ type: LOGIN_READER_ERROR })
     }
-  }, [setLoading]);
+  }, [setLoading, memoizedThrottledPost]);
 
   // LOGOUT
   const logout = useCallback(() => {
@@ -117,21 +124,24 @@ const AppProvider = ({ children }) => {                                       //
   }, []);
 
   // FETCH SUBMISSIONS
-  const fetchSubmissionsClient = useCallback(async () => {
+  const fetchSubmissionsClient = useCallback(() => {
     setLoading();
     try {
-      const { data } = await axios.get(`/api/v1/submissions`);
-      dispatch({ type: FETCH_SUBMISSIONS_SUCCESS, payload: data.submissions });
+      memoizedThrottledGet(`/api/v1/submissions`).then(({ data }) => {
+        dispatch({ type: FETCH_SUBMISSIONS_SUCCESS, payload: data.submissions });
+      }).catch(error => {
+        dispatch({ type: FETCH_SUBMISSIONS_ERROR });
+      });
     } catch (error) {
       dispatch({ type: FETCH_SUBMISSIONS_ERROR });
     }
-  }, [setLoading]);
+  }, [setLoading, memoizedThrottledGet]);
 
   // CREATE SUBMITTED
   const createSubmittedClient = useCallback(async (submitterInput) => {
     setLoading()
     try {
-      const { data } = await axios.post(`api/v1/submitted`, {
+      const { data } = await memoizedThrottledPost(`api/v1/submitted`, {
         ...submitterInput,
       })
       dispatch({ type: CREATE_SUBMISSION_SUCCESS, payload: data.submission })
@@ -139,7 +149,7 @@ const AppProvider = ({ children }) => {                                       //
     } catch (error) {
       dispatch({ type: CREATE_SUBMISSION_ERROR })
     }
-  }, [setLoading]);
+  }, [setLoading, memoizedThrottledPost]);
 
   // DELETE SUBMISSION 
   const deleteSubmissionClient = useCallback(async (submissionId) => {
@@ -156,31 +166,31 @@ const AppProvider = ({ children }) => {                                       //
   const fetchSingleSubmission = useCallback(async (submissionId) => {
     setLoading()
     try {
-      const { data } = await axios.get(`api/v1/submissions/${submissionId}`)
+      const { data } = await memoizedThrottledGet(`api/v1/submissions/${submissionId}`)
       dispatch({ type: FETCH_SINGLE_SUBMISSION_SUCCESS, payload: data.submission })
     } catch (error) {
       dispatch({ type: FETCH_SINGLE_SUBMISSION_ERROR })
     }
-  }, [setLoading]);
+  }, [setLoading, memoizedThrottledGet]);
 
   // UPDATE SUBMISSION
   const verarbeitenSubmissionClient = useCallback(async (submissionId, readerInput) => {
     setLoading()
     try {
-      const { data } = await axios.patch(`api/v1/submissions/${submissionId}`, {
+      const { data } = await memoizedThrottledPatch(`api/v1/submissions/${submissionId}`, {
         ...readerInput,
       })
       dispatch({ type: VERARBEITEN_SUBMISSION_SUCCESS, payload: data.submission })
     } catch (error) {
       dispatch({ type: VERARBEITEN_SUBMISSION_ERROR })
     }
-  }, [setLoading]);
+  }, [setLoading, memoizedThrottledPatch]);
 
   // CLAIM SUBMISSION
   const assignSubmissionClient = useCallback(async (submissionId, reader) => {
-    setLoading()
+    setLoading();
     try {
-      const { data } = await axios.patch(`api/v1/submissions/claim/${submissionId}`, {
+      const { data } = await memoizedThrottledPatch(`api/v1/submissions/claim/${submissionId}`, {
         submissionId,
         reader,
       }, {
@@ -190,19 +200,19 @@ const AppProvider = ({ children }) => {                                       //
           'Cache-Control': 'no-cache',
           Pragma: 'no-cache',
         },
-      })
-      dispatch({ type: UPDATE_READER_SUCCESS, payload: data.submission });
+      });
+      dispatch({ type: UPDATE_READER_SUCCESS, payload: { submissionId, readerId: data.reader } });
     } catch (error) {
       console.error("Error updating submission:", error);
       dispatch({ type: UPDATE_READER_ERROR });
     }
-  }, [setLoading]);
+  }, [setLoading, memoizedThrottledPatch]);
 
   // UNCLAIM SUBMISSION
   const unAssignSubmissionClient = useCallback(async (submissionId) => {
     setLoading();
     try {
-      const { data } = await axios.patch(`api/v1/submissions/unclaim/${submissionId}`, {
+      const { data } = await memoizedThrottledPatch(`api/v1/submissions/unclaim/${submissionId}`, {
         submissionId,
         reader: "unclaimed",  // Set the reader field to "unclaimed"
       }, {
@@ -218,12 +228,12 @@ const AppProvider = ({ children }) => {                                       //
       console.error("Error updating submission:", error);
       dispatch({ type: UPDATE_READER_ERROR });
     }
-  }, [setLoading]);
+  }, [setLoading, memoizedThrottledPatch]);
 
   const contextValue = useMemo(() => ({
     ...state,
     setLoading,
-    delegate,
+    addReader,
     login,
     logout,
     passwordChange,
@@ -237,7 +247,7 @@ const AppProvider = ({ children }) => {                                       //
   }), [
     state,
     setLoading,
-    delegate,
+    addReader,
     login,
     logout,
     passwordChange,

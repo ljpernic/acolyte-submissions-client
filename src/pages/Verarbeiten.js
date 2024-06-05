@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Redirect, Link, useHistory } from 'react-router-dom';
+import { useParams, Redirect, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
 import FormRowVerarbeiten from '../components/FormRowVerarbeiten';
@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar';
 import EmailTierTemplate from '../components/EmailTierTemplate';
 import ButtonsDisplay from '../components/ButtonsDisplay';
 import useAuth from '../hooks/useAuth.js';
+import debounce from 'lodash.debounce';
 
 //
 //
@@ -50,6 +51,9 @@ function Update() {
 
   const history = useHistory();
 
+  const debouncedDashboard = debounce(() => {
+    history.push(`/dashboard`);
+  }, 100);
 
 //
 //
@@ -78,7 +82,8 @@ function Update() {
   //GETS SINGLE SUBMISSION BASED ON ID
   useEffect(() => {
     fetchSingleSubmission(id);
-  }, [id]);
+  }, [id, fetchSingleSubmission]);
+  
   // HANDLES VALUES FOR UPDATING AND SENDING REJECTIONS.
   useEffect(() => {
     if (verarbeitenItem) {
@@ -99,6 +104,12 @@ function Update() {
 //
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
+  };
+
+
+  const handleDashboard = () => {
+    debouncedDashboard();
+//    console.log("Redirected to Dashboard.")
   };
 
 //
@@ -312,7 +323,7 @@ const handleUnclaimSubmission = async (submissionId) => {
   try {
     // Call the unclaimSubmissionClient function
     await unAssignSubmissionClient(submissionId);
-    history.push('/dashboard-claimed');
+    debouncedDashboard();
     // You may want to perform additional actions after unclaiming a submission
   } catch (error) {
     console.error('Error unclaiming submission:', error);
@@ -363,9 +374,9 @@ const handleUnclaimSubmission = async (submissionId) => {
       <>
         <ErrorContainer className='page'>
           <h5>There was an error, please double check your submission ID. </h5>
-          <Link to='/dashboard-claimed' className='btn'>
+          <button className='btn' onClick={handleDashboard}>
             dashboard
-          </Link>
+          </button>
         </ErrorContainer>
       </>
     );
@@ -594,11 +605,9 @@ const handleUnclaimSubmission = async (submissionId) => {
           >
             Unclaim
           </button>
-          <Link to='/dashboard-claimed'>
-            <button className= 'blue' type='button'> 
+          <button className='blue' type='button' onClick={handleDashboard}>
               Back to Dashboard 
-            </ button>
-          </Link>
+          </button>
         </div>
       </div>
 

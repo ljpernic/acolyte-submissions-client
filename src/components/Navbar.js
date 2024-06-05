@@ -19,7 +19,7 @@ const Navbar = () => {
     <Wrapper>
       <div className='nav-center'>
         <div>
-          <Link to={!reader ? '/' : '/dashboard-claimed'}>
+          <Link to={!reader ? '/' : '/dashboard'}>
             <img 
               src={florian} 
               alt="Florian, mascot and logo of the Acolyte Submission System"

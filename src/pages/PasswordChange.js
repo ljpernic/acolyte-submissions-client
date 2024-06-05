@@ -117,6 +117,7 @@ function PasswordChange() {
           </button>
         </form>
       </div>
+      {console.log("Password Change triggered.")}
     </Wrapper>
   );
 }

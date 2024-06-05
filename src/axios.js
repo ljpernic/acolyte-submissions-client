@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // BASE URL. MUST MATCH PORT IN SERVER/APP.JS!
-axios.defaults.baseURL = "http://localhost:5000";             // FOR TESTING
-//axios.defaults.baseURL = process.env.REACT_APP_BASE_URL;    // FOR PRODUCTION
+axios.defaults.baseURL = "http://localhost:5000"; // FOR TESTING
+//axios.defaults.baseURL = process.env.REACT_APP_BASE_URL; // FOR PRODUCTION
 
 axios.defaults.headers.common['Cache-Control'] = 'no-cache';
 
@@ -38,7 +38,7 @@ axios.interceptors.response.use(
       // or showing a login modal.
       console.error('Authentication failed:', error.response);
       // Example: Redirect to login page
-//      window.location.href = '/error-delegate';
+//      window.location.href = '/error-add-reader';
     } else {
       console.error('Unexpected error:', error);
     }

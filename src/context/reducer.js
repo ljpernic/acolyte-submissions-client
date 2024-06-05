@@ -1,6 +1,6 @@
 import {
-  DELEGATE_SUCCESS,
-  DELEGATE_ERROR,
+  ADD_READER_SUCCESS,
+  ADD_READER_ERROR,
   LOGIN_READER_SUCCESS,
   LOGIN_READER_ERROR,
   PASSWORD_CHANGE_SUCCESS,
@@ -28,16 +28,17 @@ const reducer = (state, action) => {
         isLoading: true
       };
 
-    case DELEGATE_SUCCESS:
+    case ADD_READER_SUCCESS:
       return {
         ...state,
         showAlert: false,
         reader: action.payload,
       };
 
-    case DELEGATE_ERROR:
+    case ADD_READER_ERROR:
       return {
         ...state,
+        isLoading: false,
         reader: null,
         showAlert: true,
         errorMessage: action.payload?.error || 'Unknown error occurred',
@@ -54,6 +55,7 @@ const reducer = (state, action) => {
       return {
         ...state,
         reader: null,
+        isLoading: false,                 // Without this, the login page hangs on "Fetching Reader..."
         showAlert: true,
       };
 
@@ -95,7 +97,10 @@ const reducer = (state, action) => {
       };
 
     case FETCH_SUBMISSIONS_ERROR:
-      return { ...state, isLoading: false };
+      return { 
+        ...state, 
+        isLoading: false 
+      };
 
     case CREATE_SUBMISSION_SUCCESS:
       return {
@@ -119,15 +124,24 @@ const reducer = (state, action) => {
       };
 
     case FETCH_SINGLE_SUBMISSION_SUCCESS:
-      return { ...state, isLoading: false, verarbeitenItem: action.payload };
+      return { 
+        ...state, 
+        verarbeitenComplete: false,
+        verarbeitenItem: action.payload 
+      };
 
     case FETCH_SINGLE_SUBMISSION_ERROR:
-      return { ...state, isLoading: false, verarbeitenItem: '', singleSubmissionError: true };
+      return { 
+        ...state, 
+        isLoading: false, 
+        verarbeitenComplete: false,
+        verarbeitenItem: '', 
+        singleSubmissionError: true 
+      };
 
     case VERARBEITEN_SUBMISSION_SUCCESS:
       return {
         ...state,
-        isLoading: false,
         verarbeitenComplete: true,
         verarbeitenItem: action.payload,
       };
@@ -140,21 +154,32 @@ const reducer = (state, action) => {
         showAlert: true,
       };
 
-    case UPDATE_READER_SUCCESS:
-      return {
-        ...state,
-        isLoading: false,
-        verarbeitenComplete: true,
-        verarbeitenItem: action.payload,
-      };
-
-    case UPDATE_READER_ERROR:
-      return {
-        ...state,
-        isLoading: false,
-        verarbeitenComplete: true,
-        showAlert: true,
-      };
+      case UPDATE_READER_SUCCESS:
+        const { submissionId, readerId } = action.payload;
+        const updatedSubmissions = state.submissions.map(submission => {
+          if (submission._id === submissionId) {
+            return {
+              ...submission,
+              reader: readerId,
+              claimed: readerId !== "Unclaimed" // Mark the submission as claimed if the reader ID is not "Unclaimed"
+            };
+          } else {
+            return submission;
+          }
+        });
+        return {
+          ...state,
+          submissions: updatedSubmissions,
+          isLoading: false,
+          verarbeitenComplete: true,
+        };
+      case UPDATE_READER_ERROR:
+        return {
+          ...state,
+          isLoading: false,
+          verarbeitenComplete: true,
+          showAlert: true,
+        };
 
     default:
       return state;

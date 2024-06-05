@@ -4,43 +4,47 @@
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import useAuth from '../hooks/useAuth.js';
+import React from 'react';
 
-const ButtonsBottom = () => {
+const ButtonsBottom = ({ setDashboardType }) => {
 
   const { isEIC } = useAuth();
+
+  const handleDashboardTypeChange = (type) => {
+    setDashboardType(type);
+  };
 
   return (
     <Wrapper>
       <div className='nav-center'>
-                                                                                    {/* ADD READER BUTTON */}
-        {(isEIC) && <div>  
-          <Link to='/delegate' className='btn hero-btn'>
+        {(isEIC) && (
+          <div>  
+            <Link to='/add-reader' className='btn hero-btn'>
               Add reader
             </Link>
-        </div>}
-                                                                                    {/* RECOMMENDED DASHBOARD BUTTON */}        
-        {(isEIC) && <div>  
-          <Link to='/dashboard-recommended' className='btn hero-btn'>
+          </div>
+        )}
+        {(isEIC) && (
+          <div>  
+            <button className='btn hero-btn' onClick={() => {handleDashboardTypeChange("recommended")}}>
               Recommended
-            </Link>
-        </div>}
-                                                                                    {/* CLAIMED DASHBOARD BUTTON */}
+            </button>
+          </div>
+        )}
         <div>  
-          <Link to='/dashboard-claimed' className='btn hero-btn'>
-              Claimed
-            </Link>
+          <button className='btn hero-btn' onClick={() => {handleDashboardTypeChange("claimed")}}>
+            Claimed
+          </button>
         </div>
-                                                                                    {/* PROCESSED DASHBOARD BUTTON */}
         <div>  
-          <Link to='/dashboard-old' className='btn hero-btn'>
-              Processed
-            </Link>
+        <button className='btn hero-btn' onClick={() => {handleDashboardTypeChange("old")}}>
+            Processed
+          </button>
         </div>
-                                                                                    {/* UNCLAIMED DASHBOARD BUTTON */}
         <div>  
-          <Link to='/dashboard-unclaimed' className='btn hero-btn'>
+            <button className='btn hero-btn' onClick={() => {handleDashboardTypeChange("unclaimed")}}>
               Unclaimed
-            </Link>
+            </button>
         </div>
       </div>
     </Wrapper>

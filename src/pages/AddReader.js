@@ -3,25 +3,25 @@
 
 import { useState } from 'react';
 import styled from 'styled-components';
-import { useGlobalContext } from '../context/appContext';
+import { useGlobalContext } from '../context/appContext.js';
 import { Redirect } from 'react-router-dom';
-import FormRow from '../components/FormRow';
+import FormRow from '../components/FormRow.js';
 import florian from '../assets/FlorianBG_Acolyte_Logo_PNG_TINY.png';
 import useAuth from '../hooks/useAuth.js';
 
-function Delegate() {
+function AddReader() {
   const [values, setValues] = useState({
     name: '',
     email: '',
     password: '',
     role: '',
-    changeLink: ['/delegate', '/dashboard-claimed'],
+    changeLink: ['/add-reader', '/dashboard'],
     isMember: false,
   });
 
   const { isEIC } = useAuth();
 
-  const { reader, delegate, login, isLoading, showAlert } = useGlobalContext();
+  const { reader, addReader, login, isLoading, showAlert } = useGlobalContext();
 
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
@@ -30,11 +30,11 @@ function Delegate() {
     e.preventDefault();
       if (isEIC === true){
         const { name, email, password, role, changeLink, isMember } = values;
-        setValues({ ...values, changeLink: ['/dashboard-claimed', '/delegate'] });
+        setValues({ ...values, changeLink: ['/dashboard', '/add-reader'] });
         if (isMember) {
           login({ email, password });
         } else {
-          delegate({ name, email, password, role, changeLink });
+          addReader({ name, email, password, role, changeLink });
         }
       } else {
         void(0)
@@ -51,12 +51,12 @@ function Delegate() {
         <div className='container'>
           {showAlert && (
             <div className='alert alert-danger'>
-              Error with the Delegate.js page. Please try again.
+              Error with the AddReader.js page. Please try again.
             </div>
           )}
           <form className='form' onSubmit={onSubmit}>
             <img src={florian} alt='Acolyte Submission System' className='logo' />
-            <h4>{values.isMember ? 'Login' : 'Delegate'}</h4>
+            <h4>{values.isMember ? 'Login' : 'Add Reader'}</h4>
             {/* name field */}
             {!values.isMember && (
               <FormRow
@@ -110,10 +110,11 @@ function Delegate() {
               className='btn btn-block'
               disabled={isLoading}
             >
-              {isLoading ? 'Fetching Delegate...' : 'Submit'}
+              {isLoading ? 'Adding Reader...' : 'Submit'}
             </button>
           </form>
         </div>
+        {console.log("Add Reader triggered.")}
       </Wrapper>
     </>
   );
@@ -151,4 +152,4 @@ const Wrapper = styled.section`
   }
 `;
 
-export default Delegate;
+export default AddReader;

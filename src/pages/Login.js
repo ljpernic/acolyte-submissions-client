@@ -32,7 +32,7 @@ function Login() {
   const readerArray = []
   return (
     <> 
-      {Array.isArray(reader) ? readerArray.push(reader[0], reader[1]) && <Redirect to='/dashboard-claimed' /> : void(0)}
+      {Array.isArray(reader) ? readerArray.push(reader[0], reader[1]) && <Redirect to='/dashboard' /> : void(0)}
       <Wrapper className='page full-page'>
         <div className='container'>
           {showAlert && (

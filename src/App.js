@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import { Home, DashboardClaimed, DashboardRecommended, DashboardUnclaimed, DashboardOld, Login, PasswordChange, FormFiction, FormPoetry, FormNonfiction, Delegate, Verarbeiten, Error, Submitted, PasswordChangeSuccess, PrivateRoute } from './pages';
+import { Home, DashboardAll, Login, PasswordChange, FormFiction, FormPoetry, FormNonfiction, AddReader, Verarbeiten, Error, Submitted, PasswordChangeSuccess, PrivateRoute } from './pages';
 
 function App() {
   return (
@@ -8,17 +8,8 @@ function App() {
         <Route path='/' exact>
           <Home />
         </Route>
-        <PrivateRoute path='/dashboard-claimed'>
-          <DashboardClaimed />
-        </PrivateRoute>
-        <PrivateRoute path='/dashboard-recommended'>
-          <DashboardRecommended />
-        </PrivateRoute>
-        <PrivateRoute path='/dashboard-unclaimed'>
-          <DashboardUnclaimed />
-        </PrivateRoute>
-        <PrivateRoute path='/dashboard-old'>
-          <DashboardOld />
+        <PrivateRoute path='/dashboard'>
+          <DashboardAll />
         </PrivateRoute>
         <Route path='/login'>
           <Login />
@@ -38,8 +29,8 @@ function App() {
         <Route path='/change-password-success'>
           <PasswordChangeSuccess />
         </Route>
-        <PrivateRoute path='/delegate'>
-          <Delegate />
+        <PrivateRoute path='/add-reader'>
+          <AddReader />
         </PrivateRoute>
         <PrivateRoute path='/change-password'>
           <PasswordChange />

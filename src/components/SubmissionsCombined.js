@@ -1,17 +1,25 @@
 //////// COMPONENT
 //////// RETURNS SUBMISSIONS FOR LOGGED-IN READER BASED ON ENTRY STATUS AND READER ////////
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
 import moment from 'moment';
 import SubmissionColumns from './SubmissionColumns';
 import { useGlobalContext } from '../context/appContext';
+import debounce from 'lodash.debounce';
 
 const SubmissionsCombined = ({ dashboardType }) => {
-  const { submissions, isLoading } = useGlobalContext();
+  const history = useHistory();
+  const { submissions, isLoading, assignSubmissionClient } = useGlobalContext();
+  const [claimedSubmissions, setClaimedSubmissions] = useState(new Set());
   const itemsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
+  const isMounted = useRef(true);
+
+  const debouncedNavigate = debounce((id) => {
+    history.push(`/verarbeiten/${id}`);
+  }, 100);
 
   const filteredSubmissions = useMemo(() => {
     return submissions.filter(entry => {
@@ -42,6 +50,38 @@ const SubmissionsCombined = ({ dashboardType }) => {
     setCurrentPage(newPage);
   };
 
+  const theCurrentReader = localStorage.getItem('reader');
+  const theCurrentReaderDetails = JSON.parse(theCurrentReader);
+  const theCurrentReaderId = theCurrentReaderDetails.readerId;
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const handleAssignSubmission = useCallback(async (submissionId, reader) => {
+    console.log('Assigning submission...');
+    try {
+      await assignSubmissionClient(submissionId, reader);
+      if (isMounted.current) {
+        setClaimedSubmissions((prevClaimed) => new Set([...prevClaimed, submissionId]));
+      }
+      console.log('Submission assigned successfully.');
+    } catch (error) {
+      console.error('Error assigning submission:', error);
+    }
+  }, [assignSubmissionClient]);
+  
+  const debouncedAssignSubmission = debounce(handleAssignSubmission, 100);
+
+  const handleArticleClick = (submissionId) => {
+    if (!claimedSubmissions.has(submissionId)) {
+      debouncedAssignSubmission(submissionId, theCurrentReaderId);
+    }
+  };
+
   if (isLoading) {
     return <div className='loading'></div>;
   }
@@ -63,29 +103,40 @@ const SubmissionsCombined = ({ dashboardType }) => {
         {displayedSubmissions.map((item) => {
           const { _id: id, name, title, type, wordCount, status, createdAt } = item;
           const date = moment(createdAt).format('MMMM Do, YYYY');
-          if (status) {
-            return (
-              <Link key={id} to={`/verarbeiten/${id}`} className='bigButton'>
-                <article>
-                  <div className='submission'>
-                    <span className='position'>{title}</span>
-                    <span className='position'>{name}</span>
-                    <span className='centerPosition'>{wordCount !== null ? wordCount : 'POEM'}</span>
-                    <StatusContainer className='status' status={status}>
-                      <strong>{status}</strong>
-                    </StatusContainer>
-                    <span className='centerPosition'>{type}</span>
-                    <span className='date'>{date}</span>
-                  </div>
-                  <br />
-                </article>
-              </Link>
-            );
-          } else {
-            return null;
-          }
-        })}
-      </Container>
+
+          const handleClick = () => {
+            if (dashboardType === 'unclaimed') {
+              // Perform action for unclaimed submissions
+              handleArticleClick(id);
+            } else {
+              // Redirect to the submission details page for other dashboard types
+              debouncedNavigate(id);
+            }
+          };
+
+    if (status) {
+      return (
+        <div key={id} className='bigButton' onClick={handleClick}>
+          <article>
+            <div className='submission'>
+              <span className='position'>{title}</span>
+              <span className='position'>{name}</span>
+              <span className='centerPosition'>{wordCount !== null ? wordCount : 'POEM'}</span>
+              <StatusContainer className='status' status={status}>
+                <strong>{status}</strong>
+              </StatusContainer>
+              <span className='centerPosition'>{type}</span>
+              <span className='date'>{date}</span>
+            </div>
+            <br />
+          </article>
+        </div>
+      );
+    } else {
+      return null;
+    }
+  })}
+</Container>
       <Pagination>
         <div className="paginationCSS">
           {Array.from({ length: totalPages }).map((_, index) => (
