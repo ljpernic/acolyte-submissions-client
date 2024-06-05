@@ -1,4 +1,4 @@
-kaleidocast.acolyte.media:443 {
+acolyte.media:443 {
     tls leonxperniciaro@gmail.com
     root * /srv
     route {
