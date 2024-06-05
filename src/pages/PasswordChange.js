@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
 import { Redirect } from 'react-router-dom';
 import FormRow from '../components/FormRow';
-import florian from '../assets/FlorianBG_Acolyte_Logo_PNG_TINY.png';
+import kaleidocast from '../assets/Kaleidocast.jpg';
 import useAuth from '../hooks/useAuth.js';
 
 function PasswordChange() {
@@ -79,7 +79,7 @@ function PasswordChange() {
 
         {/* Password Change Form */}
         <form className='form' onSubmit={handleSubmit}>
-          <img src={florian} alt='Acolyte Submission System' className='logo' />
+          <img src={kaleidocast} alt='Kaleidocast Magazine logo' className='logo' />
           <h4>Password Change</h4>
           {/* Email */}
           <FormRow

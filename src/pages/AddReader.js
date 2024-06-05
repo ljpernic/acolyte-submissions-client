@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext.js';
 import { Redirect } from 'react-router-dom';
 import FormRow from '../components/FormRow.js';
-import florian from '../assets/FlorianBG_Acolyte_Logo_PNG_TINY.png';
+import kaleidocast from '../assets/Kaleidocast.jpg';
 import useAuth from '../hooks/useAuth.js';
 
 function AddReader() {
@@ -55,7 +55,7 @@ function AddReader() {
             </div>
           )}
           <form className='form' onSubmit={onSubmit}>
-            <img src={florian} alt='Acolyte Submission System' className='logo' />
+            <img src={kaleidocast} alt='Kaleidocast Magazine logo' className='logo' />
             <h4>{values.isMember ? 'Login' : 'Add Reader'}</h4>
             {/* name field */}
             {!values.isMember && (
@@ -95,7 +95,6 @@ function AddReader() {
               <option value=""></option>
               <option value="associateEditor">Associate Editor</option>
               <option value="assistantEditor">Assistant Editor</option>
-              <option value="EIC">Editor-in-Chief</option>
             </select>
           </div>
             {/* <FormRow

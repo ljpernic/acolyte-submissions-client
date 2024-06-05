@@ -183,7 +183,7 @@ return (
   </div>
 )}
           <form className='form' onSubmit={onSubmit}>
-          <h3><strong>Acolyte Submissions System</strong></h3>
+          <h3><strong>Kaleidocast NYC</strong></h3>
             <h4>Fiction Submission</h4>
             {/* name field */}
               <FormRow
@@ -286,9 +286,14 @@ const Wrapper = styled.section`
     border-top: 5px solid var(--primary-500);
   }
 
+  h3 {
+    text-align: center;
+  }
+
   h4 {
     text-align: center;
   }
+
   p {
     margin: 0;
     margin-top: 1rem;

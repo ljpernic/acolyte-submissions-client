@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
 import { Redirect } from 'react-router-dom';
 import FormRow from '../components/FormRow';
-import florian from '../assets/FlorianBG_Acolyte_Logo_PNG_TINY.png';
+import kaleidocast from '../assets/Kaleidocast.jpg';
 
 function Login() {
   const [values, setValues] = useState({
@@ -42,7 +42,7 @@ function Login() {
           )}
           {/* Login Form */}
           <form className='form' onSubmit={onSubmit}>
-            <img src={florian} alt='Acolyte Submission System' className='logo' />
+            <img src={kaleidocast} alt='Kaleidocast Magazine logo' className='logo' />
             <h4>Login</h4>
             {/* name field */}
             {!values.isMember && (

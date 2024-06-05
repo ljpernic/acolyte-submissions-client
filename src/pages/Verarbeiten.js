@@ -118,7 +118,7 @@ function Update() {
 //
 //
   const thankYouVerarbeiten = "Thank you for your submission of "
-  const magazineVerarbeiten = "to Haven Spec Magazine. "
+  const magazineVerarbeiten = "to Kaleidocast Magazine. "
   const unfortunatelyVerarbeiten = "Unfortunately, we've decided to pass on this one, but we wish you the best of luck on your writing and publishing endeavors."
   const happyVerarbeiten = "We would be happy to consider anything else you might write!"
   const subjectiveVerarbeiten = "That's just our subjective opinion, of course, but we appreciated the chance to look at your work, and we hope you send us more."

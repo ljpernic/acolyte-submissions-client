@@ -71,10 +71,10 @@ const EmailTierTemplate = ({
       {showReaderName ? ( 
         <p>
         Sincerely, <br /><br />
-          {currentReader} <br /> Haven Spec Magazine
+          {currentReader} <br /> Kaleidocast NYC
         </p>
       ) : (
-        <p>The Haven Spec Team</p>
+        <p>The Kaleidocast Team</p>
       )}
 
       </div>

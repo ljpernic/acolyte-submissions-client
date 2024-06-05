@@ -152,7 +152,7 @@ return (
   </div>
 )}
           <form className='form' onSubmit={onSubmit}>
-          <h3><strong>Acolyte Submissions System</strong></h3>
+          <h3><strong>Kaleidocast</strong></h3>
             <h4>Non-Fiction Submission</h4>
             {/* name field */}
               <FormRow

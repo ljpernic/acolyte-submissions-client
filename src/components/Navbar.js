@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import florian from '../assets/FlorianBG_Acolyte_Logo_PNG_TINY.png';
+import kaleidocast from '../assets/Kaleidocast.jpg';
 import { FaUserCircle, FaCaretDown } from 'react-icons/fa';
 import { useGlobalContext } from '../context/appContext';
 import { Link } from 'react-router-dom';
@@ -21,9 +21,9 @@ const Navbar = () => {
         <div>
           <Link to={!reader ? '/' : '/dashboard'}>
             <img 
-              src={florian} 
-              alt="Florian, mascot and logo of the Acolyte Submission System"
-              style={{ width: '100%', height: 'auto', marginTop: '30px' }}
+              src={kaleidocast} 
+              alt="Kaleidocast Magazine logo"
+              style={{ width: '100%', height: '80px', marginTop: '30px' }}
             />
           </Link> <br />
         </div>
