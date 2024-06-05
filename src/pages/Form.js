@@ -66,9 +66,12 @@ function SubmissionForm() {
     // DATE OF SUBMISSION FOR NEW FILE NAME
       const submitDate = new Date();
       const submitYear = submitDate.getFullYear();
-      const submitMonth = submitDate.getMonth() + 1;
-      const submitDay = submitDate.getDate();
-    
+      const submitMonth = String(submitDate.getMonth() + 1).padStart(2, '0');
+      const submitDay = String(submitDate.getDate()).padStart(2, '0');
+  
+      console.log('submitMonth: ' + submitMonth)
+      console.log('submitDay: ' + submitDay)
+
     // CUTS THE FILE NAME TO A MAX OF 50 CHAR 
       if (values.title.length <= 50) 
         {
@@ -100,6 +103,9 @@ function SubmissionForm() {
 
     // RENAMES THE FILE
     const newName = typeLetter + ' - ' + submitYear + '-' + submitMonth + '-' + submitDay + ' - ' +  submitName + ' - ' + submitTitle;
+    console.log('submitMonth: ' + submitMonth)
+    console.log('submitDay: ' + submitDay)
+    console.log('newName: ' + newName)
     const renamedFile = new File([submitFile], newName, { type: submitFile.type });
   
     // PREPARES THE FILE FOR UPLOADING TO GOOGLE DRIVE

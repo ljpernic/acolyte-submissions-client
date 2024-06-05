@@ -27,7 +27,7 @@ const SubmissionsCombined = ({ dashboardType }) => {
         case 'claimed':
           return entry.status === 'Open' && entry.reader !== 'unclaimed';
         case 'old':
-          return entry.status !== 'Open';
+          return entry.status !== 'Open' && entry.status !== 'Recommended';
         case 'recommended':
           return entry.status === 'Recommended' && entry.reader !== 'unclaimed';
         case 'unclaimed':
@@ -60,6 +60,10 @@ const SubmissionsCombined = ({ dashboardType }) => {
       isMounted.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1); // Reset currentPage to 1 whenever dashboardType changes
+  }, [dashboardType]);
 
   const handleAssignSubmission = useCallback(async (submissionId, reader) => {
     console.log('Assigning submission...');

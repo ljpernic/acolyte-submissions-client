@@ -79,8 +79,11 @@ function SubmissionFormFiction() {
     // DATE OF SUBMISSION FOR NEW FILE NAME
       const submitDate = new Date();
       const submitYear = submitDate.getFullYear();
-      const submitMonth = submitDate.getMonth() + 1;
-      const submitDay = submitDate.getDate();
+      const submitMonth = String(submitDate.getMonth() + 1).padStart(2, '0');
+      const submitDay = String(submitDate.getDate()).padStart(2, '0');
+  
+      console.log('submitMonth: ' + submitMonth)
+      console.log('submitDay: ' + submitDay)
     
     // CUTS THE FILE NAME TO A MAX OF 50 CHAR 
     if (values.title.length <= 50) 
@@ -112,9 +115,12 @@ if (values.type === 'fiction') {
 }
 
     // RENAMES THE FILE
-    const newName = typeLetter + ' - ' + submitYear + '-' + submitMonth + '-' + submitDay + ' - ' +  submitName + ' - ' + submitTitle;
+    const newName = submitYear + '-' + submitMonth + '-' + submitDay + ' - ' + typeLetter + ' - ' +  submitName + ' - ' + submitTitle;
+    console.log('newName: ' + newName)
     const renamedFile = new File([submitFile], newName, { type: submitFile.type });
   
+    console.log('renamedFile: ' + renamedFile)
+
     // PREPARES THE FILE FOR UPLOADING TO GOOGLE DRIVE
     var fileReader = new FileReader();
     fileReader.readAsDataURL(renamedFile);
@@ -132,15 +138,40 @@ if (values.type === 'fiction') {
             "Content-Type": "text/plain;charset=utf-8",
           },
         })
-        .then(response => response.json())
-        .then(res => res.json())
-        .then((a) => {
-          // Further processing or logging if needed
+        .then(response => {
+          // Log the entire response object to the console
+          console.log(response);
         })
-        .catch(e => console.log(e));
+        .catch(error => console.error('Error uploading file:', error));
     };
   }
 };
+
+//// For server-side uploading of the file, this code sends the file to the server.
+////
+// const formData = new FormData();
+// formData.append('file', renamedFile);
+// formData.append('email', values.email);
+
+// try {
+//   const response = await fetch('http://localhost:5000/api/v1/submitted/upload', {
+//     method: 'POST',
+//     body: formData,
+//   });
+
+//   if (response.ok) {
+//     const data = await response.json();
+//     console.log('File uploaded successfully:', data);
+//   } else {
+//     console.error('Failed to upload file:', response.statusText);
+//     setErrorMessage('Failed to upload file. Please try again.');
+//   }
+// } catch (error) {
+//   console.error('Error uploading file:', error);
+//   setErrorMessage('An error occurred while uploading the file. Please try again.');
+// }
+// };
+
 
 return (
     <> 
@@ -233,7 +264,7 @@ return (
               className='btn btn-block'
               disabled={isLoading}
             >
-              {isLoading ? 'Fetching Submission...' : 'Submit'}
+              {isLoading ? 'Submitting...' : 'Submit'}
             </button>
           </form>
         </div>
