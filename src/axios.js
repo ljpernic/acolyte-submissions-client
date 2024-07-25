@@ -12,7 +12,8 @@ axios.interceptors.request.use((config) => {
     const reader = localStorage.getItem('reader');
     if (reader) {
       const { token } = JSON.parse(reader);
-//      console.log("axios token: " + token);
+      console.log("axios reader: " + reader);
+      console.log("axios token: " + token);
       config.headers.authorization = `Bearer ${token}`;
     }
 

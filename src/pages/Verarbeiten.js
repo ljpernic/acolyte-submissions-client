@@ -45,6 +45,7 @@ function Update() {
     reader: '',
     readerNote: '',
     coverLetter: '',
+    file: '',
   });
 
   const [isEIC, setIsEIC] = useState(false);
@@ -69,11 +70,11 @@ function Update() {
   const [testShowSubjective, setTestShowSubjective] = useState(false);
   const [testShowReaderNote, setTestShowReaderNote] = useState(false);
   const [testShowRecommend, setTestShowRecommend] = useState(false);
-  const [testShowCoverLetter, setTestShowCoverLetter] = useState(false);  
+  const [testShowCoverLetter, setTestShowCoverLetter] = useState(true);  
   const [testShowReaderName, setTestShowReaderName] = useState(false);  
-  const [componentToShow, setComponentToShow] = useState(null);
+  const [componentToShow, setComponentToShow] = useState('firstRender');
   const [newStatus, setNewStatus] = useState('initial'); 
-  const [displayName, setTestShowDisplayName] = useState('initial display name');  
+  const [displayName, setTestShowDisplayName] = useState('Cover Letter');
 //
 //
 ////// USE EFFECTS
@@ -87,8 +88,8 @@ function Update() {
   // HANDLES VALUES FOR UPDATING AND SENDING REJECTIONS.
   useEffect(() => {
     if (verarbeitenItem) {
-      const { name, email, title, wordCount, type, reader, status, coverLetter, readerNote } = verarbeitenItem;
-      setValues({ name, email, title, wordCount, type, reader, status, coverLetter, readerNote });
+      const { name, email, title, wordCount, type, reader, status, coverLetter, readerNote, file } = verarbeitenItem;
+      setValues({ name, email, title, wordCount, type, reader, status, coverLetter, readerNote, file });
     }
   }, [verarbeitenItem]);
 
@@ -97,6 +98,8 @@ function Update() {
     setIsEIC(authIsEIC);
   }, [authIsEIC]);
 
+
+  
 //
 //
 ////// HANDLES CHANGE AS YOU TYPE
@@ -104,6 +107,8 @@ function Update() {
 //
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
+    console.log("values: " + JSON.stringify(values))
+
   };
 
 
@@ -126,6 +131,12 @@ function Update() {
 
 //
 //
+////// SET READER NOTES LABEL
+//
+//
+const readerNotesLabel = newStatus === 'Rejected, Third Round' ? 'Feedback Sent to Author' : 'Editor Notes';
+//
+//
 ////// DISPLAYS EMAILTIERTEMPLATE COMPONENT IN EDITING WINDOW BASED ON COMPONENT NAME. ALSO SETS STATUS. 
 //
 //
@@ -133,6 +144,9 @@ function Update() {
       setComponentToShow(component);
 
       const componentConfig = {
+        firstRender: {
+          coverLetter: true,
+        },
         testHigh: {
           newStatus: "Rejected, Third Round",
           displayName: "Top-Tier Rejection",
@@ -271,7 +285,6 @@ function Update() {
           recommend,
           readerName,
         } = componentConfig[component];
-    
         setNewStatus(newStatus);
         setTestShowDisplayName(displayName);
         setTestShowTitle(title);
@@ -285,12 +298,11 @@ function Update() {
         setTestShowCoverLetter(coverLetter);
         setTestShowRecommend(recommend);
         setTestShowReaderName(readerName);
-    
+
         // COMMON LOGIC TO DISPLAY VERARBEITENBUTTON
         document.getElementById("verarbeitenButton").style.display = "block";
       }
     };
-
 //
 //
 // UPDATES DATABASE WHEN SUBMISSION UPDATE OR REJECTION IS CARRIED OUT. 
@@ -299,7 +311,6 @@ function Update() {
 const handleVerarbeiten = (e, status) => {
   e.preventDefault();
   const { name, email, title, reader, readerNote } = values;
-//  console.log("values: " + JSON.stringify(values))
 //  console.log("newStatus: " + newStatus)
   const selectedStatus = status || newStatus;
 //  console.log("selectedStatus after updating: " + selectedStatus)
@@ -388,6 +399,7 @@ const handleUnclaimSubmission = async (submissionId) => {
   // 
   return (
     <>
+      {console.log('Verarbeiten triggered.')}
       {!reader && <Redirect to='/' />}
       <Navbar />
       <Container className='page'>
@@ -554,7 +566,7 @@ const handleUnclaimSubmission = async (submissionId) => {
       <a 
         target="_blank" 
         rel="noopener noreferrer" 
-        href="https://drive.google.com/drive/u/0/folders/1ikWDoiulgbYQ-RCZkTcpwbBISUoeNyyi">
+        href={values.file}>
           <ButtonsDisplay 
             className= 'blue' 
             type='button' 
@@ -625,6 +637,7 @@ const handleUnclaimSubmission = async (submissionId) => {
                   </p>
                 </div>
               </div>
+
               {componentToShow && (
                 <div className ='allTags'>
                   <EmailTierTemplate
@@ -669,8 +682,9 @@ const handleUnclaimSubmission = async (submissionId) => {
                   </div>
     {/* READER NOTES FIELD THAT IS PART OF THE READER FORM. */}
                 <div>
-                  <label className='form-label'>      
-                    <strong>Reader Notes</strong>  
+                  {console.log('newStatus: ' + newStatus)}
+                  <label className='form-label'>
+                    <strong>{readerNotesLabel}</strong>  
                   </label>
                   <textarea
                     value={values.readerNote}

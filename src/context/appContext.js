@@ -119,9 +119,19 @@ const AppProvider = ({ children }) => {                                       //
 
   // LOGOUT
   const logout = useCallback(() => {
-    localStorage.removeItem('reader')
-    dispatch({ type: LOGOUT_READER })
-  }, []);
+    console.log('Logging out...');
+    const logoutReader = localStorage.getItem('reader');
+    console.log("logoutReader: " + logoutReader);
+  
+    localStorage.removeItem('reader'); // Ensure the correct key is used
+    
+    // Optional: Force a state update or wait a moment to ensure token removal
+    setTimeout(() => {
+      dispatch({ type: LOGOUT_READER });
+      // Redirect to login or home page after logging out
+      window.location.href = '/'; // Adjust the path as needed
+    }, 100); // Small delay to ensure state is updated
+  }, [dispatch]);
 
   // FETCH SUBMISSIONS
   const fetchSubmissionsClient = useCallback(() => {
@@ -138,18 +148,26 @@ const AppProvider = ({ children }) => {                                       //
   }, [setLoading, memoizedThrottledGet]);
 
   // CREATE SUBMITTED
-  const createSubmittedClient = useCallback(async (submitterInput) => {
-    setLoading()
+  const createSubmittedClient = useCallback(async (formData) => {
+    setLoading();  // Set loading state
+    
     try {
-      const { data } = await memoizedThrottledPost(`api/v1/submitted`, {
-        ...submitterInput,
-      })
-      dispatch({ type: CREATE_SUBMISSION_SUCCESS, payload: data.submission })
-      return data.submission;
+      const response = await axios.post('/api/v1/submitted', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+  
+      if (response.status !== 201) {
+        throw new Error('Network response was not ok.');
+      }
+  
+      //console.log('Response data:', response.data);
+      dispatch({ type: CREATE_SUBMISSION_SUCCESS, payload: response.data.submission });
     } catch (error) {
-      dispatch({ type: CREATE_SUBMISSION_ERROR })
+      console.error('Error in createSubmittedClient:', error);
+      dispatch({ type: CREATE_SUBMISSION_ERROR });
     }
-  }, [setLoading, memoizedThrottledPost]);
+  }, [setLoading]);
+ 
 
   // DELETE SUBMISSION 
   const deleteSubmissionClient = useCallback(async (submissionId) => {
