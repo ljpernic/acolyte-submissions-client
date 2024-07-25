@@ -1,3 +1,6 @@
+//////// PAGE
+//////// FICTION SUBMISSION FORM. ////////
+
 import { useState } from 'react';
 import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
@@ -23,7 +26,7 @@ function SubmissionFormFiction() {
 
   const handleChange = (e) => {
     const { name, type, files, value } = e.target;
-  
+
     if (type === 'file') {
       if (files && files.length > 0) {
         setValues(prevValues => ({
@@ -37,13 +40,11 @@ function SubmissionFormFiction() {
         [name]: value
       }));
     }
-  
-    // Logging for debugging
-    //console.log('Change type:', type);
-    //console.log('Current file:', values.file ? values.file.name : 'No file selected');
   };
-  
-  
+
+  const renameFile = (file, name) => {
+    return new File([file], name, { type: file.type });
+  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -58,7 +59,19 @@ function SubmissionFormFiction() {
       return;
     }
 
-    //console.log('values: ' + JSON.stringify(values))
+    // Create a new file name
+    const submitDate = new Date();
+    const submitYear = submitDate.getFullYear();
+    const submitMonth = String(submitDate.getMonth() + 1).padStart(2, '0');
+    const submitDay = String(submitDate.getDate()).padStart(2, '0');
+    const submitTitle = values.title.length <= 50 ? values.title : values.title.slice(0, 49);
+    const submitName = values.name.length <= 50 ? values.name : values.name.slice(0, 49);
+    const typeLetter = values.type === 'fiction' ? 'F' : 'UNK'; // Assuming 'UNK' for other types
+    const newFileName = `${submitYear}-${submitMonth}-${submitDay} - ${typeLetter} - ${submitName} - ${submitTitle}${values.file.name.slice(values.file.name.lastIndexOf('.'))}`;
+
+    // Rename the file
+    const renamedFile = renameFile(values.file, newFileName);
+
     const formData = new FormData();
     formData.append('name', values.name);
     formData.append('email', values.email);
@@ -66,15 +79,9 @@ function SubmissionFormFiction() {
     formData.append('type', values.type); // 'fiction'
     formData.append('wordCount', values.wordCount);
     formData.append('coverLetter', values.coverLetter);
-    
-    if (values.file) {
-      formData.append('file', values.file); // Only append file if it exists
-    }
-    
-    // for (let [key, value] of formData.entries()) {
-    //   console.log('values.file, onSubmit: ' + values.file)
-    //   console.log(`${key}:`, value);
-    // }
+
+    // Append the renamed file to FormData
+    formData.append('file', renamedFile); // Use the renamed file
 
     try {
       await createSubmittedClient(formData); // Use FormData here
@@ -179,7 +186,7 @@ const Wrapper = styled.section`
     margin-bottom: 1.38rem;
   }
   .form {
-    max-width: 400px; // Added unit
+    max-width: 400px;
     border-top: 5px solid var(--primary-500);
   }
 

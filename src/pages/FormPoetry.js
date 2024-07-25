@@ -9,28 +9,43 @@ import FormRowTextArea from '../components/FormRowTextArea';
 import { useHistory } from 'react-router-dom';
 
 function SubmissionFormPoetry() {
-  const History = useHistory();
+  const history = useHistory();
   const [values, setValues] = useState({
     name: '',
     email: '',
     confirmEmail: '',
     title: '',
-    type: 'poetry',
+    type: 'poetry', // Fixed as 'poetry'
     wordCount: '',
-    file: '',
+    file: null, // Initialize as null
     coverLetter: '',
   });
 
   const { createSubmittedClient, isLoading, showAlert } = useGlobalContext();
   const [errorMessage, setErrorMessage] = useState('');
-
   
   const handleChange = (e) => {
-    setValues({ ...values, [e.target.name]: e.target.value });
-//    console.log('handleChange values:' + JSON.stringify(values))
+    const { name, type, files, value } = e.target;
+
+    if (type === 'file') {
+      if (files && files.length > 0) {
+        setValues(prevValues => ({
+          ...prevValues,
+          file: files[0] // Preserve the file object correctly
+        }));
+      }
+    } else {
+      setValues(prevValues => ({
+        ...prevValues,
+        [name]: value
+      }));
+    }
   };
 
-  // PUSHES SUBMISSIONS TO MONGODB, RENAMES FILES, AND PUSHES FILES TO GOOGLE DRIVE 
+  const renameFile = (file, name) => {
+    return new File([file], name, { type: file.type });
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     
@@ -39,111 +54,45 @@ function SubmissionFormPoetry() {
       return;
     }
 
-    // LOCATION OF SUBMITTED FILE
-    const submitFile = e.target.file.files[0]
-    let submissionId;
-    var submitTitle;
-    var submitName;
-    var typeLetter;
+    if (!values.file) {
+      setErrorMessage("A file is required for submission.");
+      return;
+    }
 
-    // VALUES FROM THE SUBMITTED FORM
-    const { name, email, title, type, wordCount, file, coverLetter } = values;
-//    console.log('const {name...} values:' + JSON.stringify(values))
+    // Create a new file name
+    const submitDate = new Date();
+    const submitYear = submitDate.getFullYear();
+    const submitMonth = String(submitDate.getMonth() + 1).padStart(2, '0');
+    const submitDay = String(submitDate.getDate()).padStart(2, '0');
+    const submitTitle = values.title.length <= 50 ? values.title : values.title.slice(0, 49);
+    const submitName = values.name.length <= 50 ? values.name : values.name.slice(0, 49);
+    const typeLetter = values.type === 'poetry' ? 'P' : 'UNK'; // Assuming 'UNK' for other types
+    const newFileName = `${submitYear}-${submitMonth}-${submitDay} - ${typeLetter} - ${submitName} - ${submitTitle}${values.file.name.slice(values.file.name.lastIndexOf('.'))}`;
 
-    createSubmittedClient({ name, email, title, type, wordCount, file, coverLetter })
-    .then(submission => {
-//      console.log('.then(submission...):', submission);
-      submissionId = submission._id;
-//      console.log('submissionId:' + submissionId)
-      processSubmissionId(submissionId); // Pass submissionId to the processing function
-    })
-    .then(() => {
-      // Redirect after all asynchronous operations are complete
-      History.push('/submitted');
-    })
-    .catch(error => {
-      // Handle validation errors
-      if (error.status === 400 && error.data && error.data.errors) {
-        setErrorMessage(error.data.errors.join(', '));
-      } else {
-        // Handle other errors
-        console.error('Error submitting data:', error);
-      }
-    });
-  
-  // Function to process submissionId
-  function processSubmissionId(submissionId) {
-//    console.log('submissionId, inside processSubmissionId:', submissionId);
-    
+    // Rename the file
+    const renamedFile = renameFile(values.file, newFileName);
 
-    // DATE OF SUBMISSION FOR NEW FILE NAME
-      const submitDate = new Date();
-      const submitYear = submitDate.getFullYear();
-      const submitMonth = submitDate.getMonth() + 1;
-      const submitDay = submitDate.getDate();
-    
-    // CUTS THE FILE NAME TO A MAX OF 50 CHAR 
-    if (values.title.length <= 50) 
-    {
-      submitTitle = values.title;
-    } 
-      else 
-      {
-        submitTitle = values.title.slice(0, 49);
-      }
+    const formData = new FormData();
+    formData.append('name', values.name);
+    formData.append('email', values.email);
+    formData.append('title', values.title);
+    formData.append('type', values.type); // 'poetry'
+    formData.append('wordCount', values.wordCount);
+    formData.append('coverLetter', values.coverLetter);
 
-  if (values.name.length <= 50) 
-    {
-      submitName = values.name;
-    } 
-      else 
-      {
-        submitName = values.name.slice(0, 49);
-      }
+    // Append the renamed file to FormData
+    formData.append('file', renamedFile); // Use the renamed file
 
-if (values.type === 'fiction') {
-  typeLetter = 'F';
-} else if (values.type === 'poetry') {
-  typeLetter = 'P';
-} else if (values.type === 'non-fiction') {
-  typeLetter = 'N';
-} else {
-  typeLetter = 'UNK';
-}
-
-    // RENAMES THE FILE
-    const newName = typeLetter + ' - ' + submitYear + '-' + submitMonth + '-' + submitDay + ' - ' +  submitName + ' - ' + submitTitle;
-    const renamedFile = new File([submitFile], newName, { type: submitFile.type });
-  
-    // PREPARES THE FILE FOR UPLOADING TO GOOGLE DRIVE
-    var fileReader = new FileReader();
-    fileReader.readAsDataURL(renamedFile);
-    fileReader.onload = function (e) {
-      var rawLog = fileReader.result.split(',')[1];
-      var dataSend = { dataReq: { data: rawLog, name: renamedFile.name, email: values.email, type: renamedFile.type }, fname: "uploadFilesToGoogleDrive" };
-  
-      fetch('https://script.google.com/macros/s/AKfycbztsfxR4O0TaqonWsKax5Mqwunm-s2wYg7iKdLnKYUhlbif1IvApqq_7jZvTJsg0v3g/exec',
-        {
-          redirect: "follow",
-          method: "POST",
-          mode: "no-cors",
-          body: JSON.stringify(dataSend),
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8",
-          },
-        })
-        .then(response => response.json())
-        .then(res => res.json())
-        .then((a) => {
-          // Further processing or logging if needed
-        })
-        .catch(e => console.log(e));
-    };
+    try {
+      await createSubmittedClient(formData); // Use FormData here
+      history.push('/submitted'); // Redirect after successful submission
+    } catch (error) {
+      console.error('Error submitting data:', error);
+      setErrorMessage('An error occurred while submitting the form.');
   }
 };
 
 return (
-    <> 
       <Wrapper className='page full-page'>
         <div className='container'>
 {showAlert && (
@@ -189,26 +138,13 @@ return (
               handleChange={handleChange}
               label="Title"              
             />
-            {/* type field */}
-            <div className='form-row'>
-              {(
-                <label htmlFor={values.name} className='form-label'>         {/* Makes sure the label is keyed to the name value. */}
-                  <strong>Type</strong>                                              {/* Displays that name value dynamically. */}
-                </label>
-              )}
-            <div name="type" onChange={handleChange} className='form-input one-option' value={values.type || ''}>
-              <span value="poetry">Poetry</span>
-            </div>
-          </div>
             {/* file field */}
-            <FormRow
-              type='file'
-              name='file'
-              value={values.file}
-              accept='.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.rtf, application/rtf, .odt'
-              handleChange={handleChange}
-              label="File"
-            />
+          <FormRow
+            type='file'
+            name='file'
+            handleChange={handleChange}
+            label="File"
+          />
             {/* cover letter field */}
             <FormRowTextArea
               type='text'
@@ -218,18 +154,17 @@ return (
               handleChange={handleChange}
               label="Cover Letter"
             />
-            {/* end of single form row */}
+          {/* submit button */}
             <button
               type='submit'
               className='btn btn-block'
               disabled={isLoading}
             >
-              {isLoading ? 'Fetching Submission...' : 'Submit'}
+            {isLoading ? 'Submitting...' : 'Submit'}
             </button>
           </form>
         </div>
       </Wrapper>
-    </>
   );
 }
 

@@ -36,9 +36,9 @@ function Home() {
             <Link to='/form-poetry' className='btn-home hero-btn-home'>
               Submit Poetry
             </Link><br /><br />
-            <Link to='/form-nonfiction' className='btn-home hero-btn-home'>
+            {/* <Link to='/form-nonfiction' className='btn-home hero-btn-home'>
               Submit Non-fiction
-            </Link><br /><br />
+            </Link><br /><br /> */}
             {/* <Link to='/login' className='btn hero-btn'>
               Login
               </Link><br /><br /> */}
