@@ -10,7 +10,10 @@ RUN npm install
 
 COPY . .
 
-ARG BASE_URL
+# Define the build argument
+ARG BASE_URL=http://localhost:5000
+
+# Set the environment variable using the build argument
 ENV REACT_APP_BASE_URL=${BASE_URL}
 
 RUN npm run build
@@ -18,8 +21,8 @@ RUN npm run build
 ### Second stage: Serve with Caddy
 FROM caddy:2.1.1-alpine
 
-# Copy the Caddyfile to a different location for testing
-COPY Caddyfile.production /etc/caddy/Caddyfile
+# Copy the Caddyfile to the default location for Caddy
+COPY Caddyfile.local /etc/caddy/Caddyfile
 
 # Copy the built React app from the previous stage
 COPY --from=builder /usr/src/app/build/ /srv

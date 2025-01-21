@@ -1,8 +1,3 @@
-//////// COMPONENT
-//////// FORM ROW, GENERIC ////////
-
-import React from 'react';
-
 const FormRow = ({
   type,
   name,
@@ -12,26 +7,45 @@ const FormRow = ({
   horizontal,
   placeholder,
   label,
+  options,  // Add options for radio buttons
 }) => {
   return (
     <div className='form-row'>
       {!horizontal && (
-        <label htmlFor={name} className='form-label'>         {/* KEYS LAVEL TO NAME VALUE */}
-          <strong>{label}</strong>                             {/* DYNAMICALLY DISPLAYS NAME */}
+        <label htmlFor={name} className='form-label'>
+          <strong>{label}</strong>
         </label>
       )}
+      {type === "radio" ? (
+        // Dynamically render radio buttons if the type is "radio"
+<div className="radio-group">
+  {options.map((option) => (
+    <label key={option.value} className="radio-label">
       <input
-        type={type}                                           // DYNAMICALLY GENERATED INPUT VALUES
-        value={value}
+        type="radio"
         name={name}
-        accept={accept}
+        value={option.value}
+        checked={value === option.value}
         onChange={handleChange}
-        className='form-input'
-        placeholder={placeholder}
       />
+      <span style={{'padding':'10px'}}>{option.label}</span> {/* Span gets styled when input is checked */}
+    </label>
+  ))}
+</div>
+      ) : (
+        // Default for other types (text, email, etc.)
+        <input
+          type={type}
+          value={value}
+          name={name}
+          accept={accept}
+          onChange={handleChange}
+          className='form-input'
+          placeholder={placeholder}
+        />
+      )}
     </div>
   );
-  
 };
 
 export default FormRow;

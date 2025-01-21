@@ -1,4 +1,8 @@
-import { useState, useEffect } from 'react';
+//// UPDATE UPDATE UPDATE UPDATE UPDATE UPDATE UPDATE UPDATE UPDATE UPDATE UPDATE  
+//// EVERYTHING BEFORE THIS IS WHAT WAS IN THE FILE BEFORE WE STARTED WORKING ON IT!
+//// I AM ADDING THIS FOR WHEN I INEVITABLY MESS IT UP, I CAN RESET IT!
+
+import { useMemo, useState, useEffect } from 'react';
 import { useParams, Redirect, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { useGlobalContext } from '../context/appContext';
@@ -9,13 +13,10 @@ import ButtonsDisplay from '../components/ButtonsDisplay';
 import useAuth from '../hooks/useAuth.js';
 import debounce from 'lodash.debounce';
 
-//
-//
-////// This is the start of the entire function for sending rejections, updating submissions, and interacting with data on the dashboard.
-//
-//
+import { displayComponentHelper } from '../components/dashboardConfig';
 
 function Update() {
+  console.log('This happened.');
   const { id } = useParams();
   const {
     isLoading,
@@ -28,39 +29,40 @@ function Update() {
     unAssignSubmissionClient,
   } = useGlobalContext();
 
-  // SETS CURRENT READER INFO
-  const currentReader = useGlobalContext().reader;
+  const thisReader = (Array.isArray(reader) && reader.length > 0) ? reader[0] : {};
+  const currentReader = thisReader.name || 'Unknown';
+  const currentReaderRoleRaw = thisReader.role || '';
+  const currentReaderRole = currentReaderRoleRaw === 'EIC' ? 'Editor' : 
+                             currentReaderRoleRaw === 'assistantEditor' ? 'Assistant Editor' : 
+                             currentReaderRoleRaw === 'associateEditor' ? 'Associate Editor' : 
+                             'Unknown';
 
-  // VERIFIES EIC LOGGED IN FOR SOME FUNCTIONALITY
-  const { isEIC: authIsEIC } = useAuth();
+  const { isEIC } = useAuth();
 
-  // SETS INITIAL VALUES
   const [values, setValues] = useState({
     name: '',
-    title: '',
     email: '',
-    wordCount: '',
+    title: '',
+    wordCount: 0,
+    feedback: '',
     type: '',
-    status: '',
     reader: '',
-    readerNote: '',
+    status: '',
     coverLetter: '',
-    file: '',
+    readerNote: '',
+    file: null,
   });
-
-  const [isEIC, setIsEIC] = useState(false);
 
   const history = useHistory();
 
   const debouncedDashboard = debounce(() => {
+    const savedDashboardType = sessionStorage.getItem('dashboardType');
+    console.log('savedDashboardType: ' + savedDashboardType)
     history.push(`/dashboard`);
+    console.log("went back")
   }, 100);
 
-//
-//
-////// SETS USESTATES FOR SELECTIVELY DISPLAYING EMAIL FORMATS TO READER.
-//
-//
+  const [newStatus, setNewStatus] = useState('initial'); 
   const [testShowName, setTestShowName] = useState(false);
   const [testShowTitle, setTestShowTitle] = useState(false);  
   const [testShowThankYou, setTestShowThankYou] = useState(false);
@@ -72,305 +74,125 @@ function Update() {
   const [testShowRecommend, setTestShowRecommend] = useState(false);
   const [testShowCoverLetter, setTestShowCoverLetter] = useState(true);  
   const [testShowReaderName, setTestShowReaderName] = useState(false);  
+  const [testShowHavenSpecTeam, setTestShowHavenSpecTeam] = useState(false);  
   const [componentToShow, setComponentToShow] = useState('firstRender');
-  const [newStatus, setNewStatus] = useState('initial'); 
   const [displayName, setTestShowDisplayName] = useState('Cover Letter');
-//
-//
-////// USE EFFECTS
-//
-//
-  //GETS SINGLE SUBMISSION BASED ON ID
-  useEffect(() => {
-    fetchSingleSubmission(id);
-  }, [id, fetchSingleSubmission]);
+
+  const fetchSingleSubmissionNow = useMemo(() => {
+    console.log("fetchSingleSubmissionNow id: " + id)
+    return (id) => {
+      fetchSingleSubmission(id);  // Pass id to fetchSingleSubmission
+    };
+  }, [fetchSingleSubmission, id]);
   
-  // HANDLES VALUES FOR UPDATING AND SENDING REJECTIONS.
   useEffect(() => {
-    if (verarbeitenItem) {
-      const { name, email, title, wordCount, type, reader, status, coverLetter, readerNote, file } = verarbeitenItem;
-      setValues({ name, email, title, wordCount, type, reader, status, coverLetter, readerNote, file });
+    if (id) {
+      console.log("fetchSingleSubmissionNow id, useEffect: " + id)
+      fetchSingleSubmissionNow(id);  // Pass id to the memoized function
     }
-  }, [verarbeitenItem]);
+  }, [id, fetchSingleSubmissionNow]);
 
-  // CONTROLS EIC AUTHENTICATION BY FETCHING READER INO FROM USEAUTH HOOK
   useEffect(() => {
-    setIsEIC(authIsEIC);
-  }, [authIsEIC]);
+    if (verarbeitenItem && Object.keys(verarbeitenItem).length > 0) {
+      console.log("verarbeitenItem id, useEffect: " + id)
+      const { name, email, title, wordCount, feedback, type, reader, status, coverLetter, readerNote, file } = verarbeitenItem;
+      setValues((prevValues) => ({
+        ...prevValues,
+        name,
+        email,
+        title,
+        wordCount,
+        feedback,
+        type,
+        reader,
+        status,
+        coverLetter,
+        readerNote,
+        file,
+      }));
+    }
+  }, [verarbeitenItem, id]);
 
-
-  
-//
-//
-////// HANDLES CHANGE AS YOU TYPE
-//
-//
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
-    console.log("values: " + JSON.stringify(values))
-
   };
 
 
   const handleDashboard = () => {
     debouncedDashboard();
-//    console.log("Redirected to Dashboard.")
   };
 
-//
-//
-////// EMAIL ELEMENTS: TEXT FOR REJECTION EMAILS THAT EMAILTIERTEMPLATE COMPONENT SELECTIVELY USES BASED ON WHAT IS DISPLAYED.
-//
-//
-  const thankYouVerarbeiten = "Thank you for your submission of "
-  const magazineVerarbeiten = "to Haven Spec Magazine. "
-  const unfortunatelyVerarbeiten = "Unfortunately, we've decided to pass on this one, but we wish you the best of luck on your writing and publishing endeavors."
+  const thankYouVerarbeiten = "Thank you for your submission of " + values.title
+  const magazineVerarbeiten = " to Haven Spec Magazine. "
+  const unfortunatelyVerarbeiten = "Unfortunately, we've decided to pass on this, but we wish you the best of luck on your writing and publishing endeavors. "
   const happyVerarbeiten = "We would be happy to consider anything else you might write!"
-  const subjectiveVerarbeiten = "That's just our subjective opinion, of course, but we appreciated the chance to look at your work, and we hope you send us more."
-  const recommendVerarbeiten = "This is just a quick note that we've held this piece for further consideration. You should hear from us again in the next couple of months."
+  const subjectiveVerarbeiten = "That's just our subjective opinion, of course, but we appreciated the chance to look at your work, and we hope you send us more. "
+  const recommendVerarbeiten = "This is just a quick note that we've held this piece for further consideration. You should hear from us again in the next couple of months. "
 
-//
-//
-////// SET READER NOTES LABEL
-//
-//
 const readerNotesLabel = newStatus === 'Rejected, Third Round' ? 'Feedback Sent to Author' : 'Editor Notes';
-//
-//
-////// DISPLAYS EMAILTIERTEMPLATE COMPONENT IN EDITING WINDOW BASED ON COMPONENT NAME. ALSO SETS STATUS. 
-//
-//
-    const displayComponent = (component) => {
-      setComponentToShow(component);
 
-      const componentConfig = {
-        firstRender: {
-          coverLetter: true,
-        },
-        testHigh: {
-          newStatus: "Rejected, Third Round",
-          displayName: "Top-Tier Rejection",
-          title: true,
-          name: true,
-          thankYou: true,
-          magazine: true,
-          unfortunately: true,
-          invite: true,
-          subjective: true,
-          readerNote: true,
-          coverLetter: false,
-          recommend: false,
-          readerName: true,
-        },
-        testMiddle: {
-          newStatus: "Rejected, Second Round",
-          displayName: "Middle-Tier Rejection",
-          title: true,
-          name: true,
-          thankYou: true,
-          magazine: true,
-          unfortunately: true,
-          invite: true,
-          subjective: false,
-          readerNote: false,
-          coverLetter: false,
-          recommend: false,
-          readerName: true,
-        },
-        testLow: {
-          newStatus: "Rejected, First Round",
-          displayName: "Low-Tier Rejection",
-          title: true,
-          name: true,
-          thankYou: true,
-          magazine: true,
-          unfortunately: true,
-          invite: false,
-          subjective: false,
-          readerNote: false,
-          coverLetter: false,
-          recommend: false,
-          readerName: true,
-        },
-        testAnon: {
-          newStatus: "Rejected Anonymously",
-          displayName: "Anonymous Rejection",
-          title: true,
-          name: true,
-          thankYou: true,
-          magazine: true,
-          unfortunately: true,
-          invite: false,
-          subjective: false,
-          readerNote: false,
-          coverLetter: false,
-          recommend: false,
-          readerName: false,
-        },
-        testRec: {
-          newStatus: "Recommended",
-          displayName: "Recommend",
-          title: true,
-          name: true,
-          thankYou: true,
-          magazine: true,
-          unfortunately: false,
-          invite: false,
-          subjective: false,
-          readerNote: false,
-          coverLetter: false,
-          recommend: true,
-          readerName: true,
-        },     
-        testUpdate: {
-          newStatus: values.status,
-          displayName: "Update",
-          title: false,
-          name: false,
-          thankYou: false,
-          magazine: false,
-          unfortunately: false,
-          invite: false,
-          subjective: false,
-          readerNote: false,
-          coverLetter: true,
-          recommend: false,
-          readerName: false,
-        },
-        testCover: {
-          newStatus: values.status,
-          displayName: "Cover Letter",
-          title: false,
-          name: false,
-          thankYou: false,
-          magazine: false,
-          unfortunately: false,
-          invite: false,
-          subjective: false,
-          readerNote: false,
-          coverLetter: true,
-          recommend: false,
-          readerName: false,
-        },                   
-        testOpen: {
-          newStatus: values.status,
-          displayName: "Open File",
-          title: false,
-          name: false,
-          thankYou: false,
-          magazine: false,
-          unfortunately: false,
-          invite: false,
-          subjective: false,
-          readerNote: false,
-          coverLetter: true,
-          recommend: false,
-          readerName: false,
-        },                   
-      }
+const displayComponent = (component) => {
+  displayComponentHelper({
+    component,
+    values,
+    setStateFunctions: {
+      setComponentToShow,
+      setNewStatus,
+      setTestShowDisplayName,
+      setTestShowTitle,
+      setTestShowName,
+      setTestShowThankYou,
+      setTestShowMagazine,
+      setTestShowUnfortunately,
+      setTestShowInvite,
+      setTestShowSubjective,
+      setTestShowReaderNote,
+      setTestShowCoverLetter,
+      setTestShowRecommend,
+      setTestShowReaderName,
+      setTestShowHavenSpecTeam,
+    },
+  });
+};
 
-      if (componentConfig[component]) {
-        const {
-          newStatus,
-          displayName,
-          title,
-          name,
-          thankYou,
-          magazine,
-          unfortunately,
-          invite,
-          subjective,
-          readerNote,
-          coverLetter,
-          recommend,
-          readerName,
-        } = componentConfig[component];
-        setNewStatus(newStatus);
-        setTestShowDisplayName(displayName);
-        setTestShowTitle(title);
-        setTestShowName(name);
-        setTestShowThankYou(thankYou);
-        setTestShowMagazine(magazine);
-        setTestShowUnfortunately(unfortunately);
-        setTestShowInvite(invite);
-        setTestShowSubjective(subjective);
-        setTestShowReaderNote(readerNote);
-        setTestShowCoverLetter(coverLetter);
-        setTestShowRecommend(recommend);
-        setTestShowReaderName(readerName);
-
-        // COMMON LOGIC TO DISPLAY VERARBEITENBUTTON
-        document.getElementById("verarbeitenButton").style.display = "block";
-      }
-    };
-//
-//
-// UPDATES DATABASE WHEN SUBMISSION UPDATE OR REJECTION IS CARRIED OUT. 
-//
-//
-const handleVerarbeiten = (e, status) => {
+    const handleVerarbeiten = (e, status) => {
   e.preventDefault();
   const { name, email, title, reader, readerNote } = values;
-//  console.log("newStatus: " + newStatus)
   const selectedStatus = status || newStatus;
-//  console.log("selectedStatus after updating: " + selectedStatus)
-  // PERFORMS VERARBEITENSUBMISSIONCLIENT FUNCTION IF THESE VALUES EXIST.  
   if (name && email && title && reader && selectedStatus) {
     verarbeitenSubmissionClient(id, { name, title, email, reader, status: selectedStatus, readerNote });
   }
-  // HIDES VERARBEITENBUTTON AND SHOWS SUCCESS IF STATUS IS NO LONGER OPEN.
   if (status !== 'open' && status !== 'EIC') {
   document.getElementById("verarbeitenButton").style.display = "none";
   document.getElementById("verarbeitenSuccess").style.display = "block";
   }
 };
 
-//
-//
-// USES UNASSIGNSUBMISSIONCLIENT FUNCTION ON THE ACTIVE SUBMISSION.
-//
-//
-const handleUnclaimSubmission = async (submissionId) => {
+const handleUnclaimSubmission = async (id) => {
   try {
-    // Call the unclaimSubmissionClient function
-    await unAssignSubmissionClient(submissionId);
+    await unAssignSubmissionClient(id);
     debouncedDashboard();
-    // You may want to perform additional actions after unclaiming a submission
   } catch (error) {
     console.error('Error unclaiming submission:', error);
-    // Handle errors as needed
   }
 };
 
-//
-//
-// THE DASHBOARD SUBMIT FUNCTIONALITY STARTS HERE AND HAS FOUR POINTS.
-// THIS IS THE FORM ITSELF THAT SUBMITS.
-//
-//
-//
-//
   const handleSubmit = (e) => {
     e.preventDefault();
     const { name, email, title, wordCount, type, status, coverLetter, readerNote } = values;
-    // IF THESE VALUES EXIST...
     if (name && email && title && wordCount && type && status && coverLetter) {
-      // AND IF THE STATUS IS OPEN...
       if (status === "Open") {
-        // RUNS THROUGH EVERYTHING AND SETS THEM TO READ ONLY...
         var theseTags = document.getElementsByClassName('allTags');
         for (var i = 0; i < theseTags.length; i++)
         {
           theseTags.item(i).readOnly = true;
         }
-        // AND HIDES THE SUBMIT BUTTONS...
         var theseButtons = document.getElementsByClassName('allButons');
         for (var j = 0; j < theseButtons.length; j++)
         {
           theseButtons.item(j).style.display = "none";
         }
       }
-      // THEN PRFORMS VERARBEITENSUBMISSIONCLIENT TO UPDATE THE SUBMISSION.
       verarbeitenSubmissionClient(id, { name, email, title, wordCount, type, status, reader, coverLetter, readerNote });
     }
   };
@@ -379,7 +201,6 @@ const handleUnclaimSubmission = async (submissionId) => {
     return <div className='loading'></div>;
   }
 
-  // IF THE VERARBEITENITEM THAT IS SET ABOVE BY USEEFFECT DOESN'T EXIST, THIS GIVES AN ERROR.
   if (!verarbeitenItem || error) {
     return (
       <>
@@ -392,11 +213,7 @@ const handleUnclaimSubmission = async (submissionId) => {
       </>
     );
   }
-  //
-  //
-  //////// IF NO ERRORS, RETURNS FORM ON TOP LEFT (AND BOTTOM RIGHT) TO CAPTURE THE READER ENTRIES.
-  //
-  // 
+
   return (
     <>
       {console.log('Verarbeiten triggered.')}
@@ -406,13 +223,10 @@ const handleUnclaimSubmission = async (submissionId) => {
         <form className='form' onSubmit={handleSubmit}>
           <p>{verarbeitenComplete && 'Success! Processing Complete'}</p>
 
-    {/* BIG GRID FOR TWO COLUMNS */}
           <div className="bigGrid">
 
-    {/* LEFT HALF OF GRID, WITH UPDATE FORM */}
             <div className='container'>
 
-    {/* HEADER OF LEFT COLUMN */}
               <div className='action-div-top'>
                   <h2>
                     <strong>
@@ -448,7 +262,6 @@ const handleUnclaimSubmission = async (submissionId) => {
               /> 
               <br />
             <div className='action-div-top'>
-            {/* SHOWS WORD COUNT VALUE IF WORD COUNT ISN'T NULL. */}
             {values.wordCount === null ? '' : <div className='form-row action-div-WC-S'> <label htmlFor='wordCount' className='form-label' style={{marginBottom : '10px'}}> <strong>Word Count</strong> </label> {values.wordCount} </div>}
               <div className='form-row action-div-WC-S'>
                 <label htmlFor='type' className='form-label' style={{marginBottom : '15px'}}>
@@ -463,7 +276,26 @@ const handleUnclaimSubmission = async (submissionId) => {
                 <StatusContainer className='status' status={values.status}>
                       <strong>{values.status}</strong>
                     </StatusContainer>
-              </div> 
+              </div>
+              {console.log('values.feedback: ' + values.feedback)} 
+              {values.feedback === null 
+  ? 'Null' 
+  : values.feedback === false 
+  ? 'No feedback requested' 
+  : values.feedback === true 
+  ? 'Feedback requested' 
+  : (
+      <div className='form-row action-div-WC-S'>
+        <label
+          htmlFor='feedback'
+          className='form-label'
+          style={{ marginBottom: '10px' }}
+        >
+          <strong>Feedback</strong>
+        </label>
+        {values.feedback}
+      </div>
+    )}
             </div>
               <br />
               <div className='action-div-top'>
@@ -472,15 +304,7 @@ const handleUnclaimSubmission = async (submissionId) => {
                 </strong>
               </div>
 
-  {/* DASHBOARD, BOTTOM LEFT SIDE (FOR BUTTONS TO CHANGE RIGHT-SIDE DISPLAY) */}
-  
-    {/* CONTAINER FOR TOP ROW OF BUTTONS, LEFT-HAND COLUMN */}
     <div className="action-div">
-      {/* 
-      //
-      RECOMMENDATION BUTTON 
-      //
-      */}
         <ButtonsDisplay
           className={values.status === "Open" ? 'blue' : 'disabledBlue'}
           type='button'
@@ -489,11 +313,7 @@ const handleUnclaimSubmission = async (submissionId) => {
         >
           Recommend
         </ButtonsDisplay>
-      {/* 
-      //
-      ANONYMOUS REJECTION BUTTON 
-      //
-      */}
+
         <ButtonsDisplay
           className={values.status === "Open" || (values.status === "Recommended" && isEIC) ? 'blue' : 'disabledBlue'}
           type='button'
@@ -503,17 +323,8 @@ const handleUnclaimSubmission = async (submissionId) => {
           Anonymous Rejection
         </ButtonsDisplay>
       </div>
-  {/* 
-  //
-  // CONTAINER FOR TOP ROW OF BUTTONS, LEFT-HAND COLUMN
-  //
-  */}
+
     <div className="action-div">
-      {/* 
-      //
-      LOW-TIER REJECTION BUTTON 
-      //
-      */}
         <ButtonsDisplay
           className={values.status === "Open" || (values.status === "Recommended" && isEIC) ? 'blue' : 'disabledBlue'}
           type='button'
@@ -522,11 +333,6 @@ const handleUnclaimSubmission = async (submissionId) => {
         > 
           Low-tier rejection 
         </ButtonsDisplay>
-      {/* 
-      //
-      MIDDLE-TIER REJECTION BUTTON 
-      //
-      */}
         <ButtonsDisplay
           className={values.status === "Open" || (values.status === "Recommended" && isEIC) ? 'blue' : 'disabledBlue'}
           type='button'
@@ -535,34 +341,20 @@ const handleUnclaimSubmission = async (submissionId) => {
         > 
           Middle-tier rejection 
         </ButtonsDisplay>
-      {/* 
-      //
-      HIGH-TIER REJECTION BUTTON 
-      //
-      */}
         <ButtonsDisplay
           className={values.status === "Open" || (values.status === "Recommended" && isEIC) ? 'blue' : 'disabledBlue'}
           type='button'
           disabled={values.status === "Open" || (values.status === "Recommended" && isEIC) ? false : true }
           onClick={() => displayComponent('testHigh')}
         > 
-          High-tier rejection Test 
+          High-tier rejection 
         </ButtonsDisplay>
 </div>
-  {/* 
-  //
-  // CONTAINER FOR BOTTOM ROW OF BUTTONS, LEFT-HAND COLUMN
-  //
-  */}
+
     <div className='action-div-middle'>
       <strong>Other Actions</strong>
     </div>          
     <div className="action-div">
-      {/* 
-      //
-      OPEN FILE FOLDER BUTTON 
-      //
-      */}
       <a 
         target="_blank" 
         rel="noopener noreferrer" 
@@ -574,11 +366,6 @@ const handleUnclaimSubmission = async (submissionId) => {
             Open File Folder 
           </ ButtonsDisplay>
         </a>
-      {/* 
-      //
-      UPDATE BUTTON 
-      //
-      */}
         {isEIC && (
           <ButtonsDisplay
             className={values.status === "Open" ? 'blue' : values.status === "Recommended" ? 'blue' : 'disabledBlue'}
@@ -589,11 +376,6 @@ const handleUnclaimSubmission = async (submissionId) => {
             Update 
           </ButtonsDisplay>
         )}
-      {/* 
-      //
-      SHOW COVER LETTER BUTTON 
-      //
-      */}      
         <ButtonsDisplay 
           className= 'blue' 
           type='button' 
@@ -604,11 +386,6 @@ const handleUnclaimSubmission = async (submissionId) => {
       </div>
 
       <div className="action-div">
-        {/* 
-        //
-        UNCLAIM BUTTON 
-        //
-        */}      
           <button 
             className={values.status === "Open" ? 'blue' : 'disabledBlue'}
             type='button'
@@ -617,13 +394,12 @@ const handleUnclaimSubmission = async (submissionId) => {
           >
             Unclaim
           </button>
-          <button className='blue' type='button' onClick={handleDashboard}>
+          <button className='blue' type='button' onClick={handleDashboard} >
               Back to Dashboard 
           </button>
         </div>
       </div>
 
-    {/* DASHBOARD, TOP RIGHT SIDE (DIFFERENT DISPLAYS, DEPENDING ON BUTTON PRESS; DEFAULT IS COVER LETTER) */}
             <div className='container'>
               <div className = 'allTags' id='updateText' style={{width : '100%', height : '516px', display : 'none'}}>
                 <div style={{width : '100%', height : '440px'}}>
@@ -646,7 +422,9 @@ const handleUnclaimSubmission = async (submissionId) => {
                     title={values.title} 
                     showTitle={testShowTitle} 
                     currentReader={currentReader}
+                    currentReaderRole={currentReaderRole}
                     showReaderName={testShowReaderName}
+                    showHavenSpecTeam={testShowHavenSpecTeam}
                     displayName={displayName}
                     thankYou={thankYouVerarbeiten}
                     showThankYou={testShowThankYou}
@@ -669,18 +447,14 @@ const handleUnclaimSubmission = async (submissionId) => {
                 </div>
               )}
 
-    {/* SUBMIT BUTTON FOR SENDING REJECTIONS, RECOMMENDATIONS, DATABASE UPDATES, ETC */}
-    {/* ON CLICK, ACTIVATES HANDLEVERARBEITEN FUNCTION ABOVE */}
                     <div className='action-div-top'>
                     <button className = 'red allTags' id='verarbeitenButton' style={{display : 'none'}} type='button' onClick={handleVerarbeiten}>
                       Submit
                     </ button>
-    {/* SHOWS IF FORM SUBMISSION BY READER IS SUCCESSFUL. CHANGES STYLE TO NONE TO MAKE BUTTON UNCLICKABLE. */}
                     <div className = 'allTags' id='verarbeitenSuccess' style={{display : 'none'}}> 
                       Submit successful!
                     </div>
                   </div>
-    {/* READER NOTES FIELD THAT IS PART OF THE READER FORM. */}
                 <div>
                   {console.log('newStatus: ' + newStatus)}
                   <label className='form-label'>
@@ -689,7 +463,7 @@ const handleUnclaimSubmission = async (submissionId) => {
                   <textarea
                     value={values.readerNote}
                     name='readerNote'
-                    readOnly={values.status !== "Open"}
+                    readOnly={values.status !== "Open" && !isEIC}
                     onChange={handleChange}
                     className='form-textarea'
                     placeholder='placeholder text...'

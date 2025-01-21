@@ -18,6 +18,7 @@ import {
   VERARBEITEN_SUBMISSION_SUCCESS,
   UPDATE_READER_SUCCESS,
   UPDATE_READER_ERROR,
+  SET_CURRENT_PAGE,
 } from './actions';
 
 const reducer = (state, action) => {
@@ -127,7 +128,7 @@ const reducer = (state, action) => {
       return { 
         ...state, 
         verarbeitenComplete: false,
-        verarbeitenItem: action.payload 
+        verarbeitenItem: action.payload, 
       };
 
     case FETCH_SINGLE_SUBMISSION_ERROR:
@@ -160,12 +161,11 @@ const reducer = (state, action) => {
           if (submission._id === submissionId) {
             return {
               ...submission,
-              reader: readerId,
-              claimed: readerId !== "Unclaimed" // Mark the submission as claimed if the reader ID is not "Unclaimed"
+              reader: readerId,  // Update the reader field
+              claimed: readerId !== "Unclaimed",  // Mark it as claimed
             };
-          } else {
-            return submission;
           }
+          return submission;
         });
         return {
           ...state,
@@ -180,6 +180,11 @@ const reducer = (state, action) => {
           verarbeitenComplete: true,
           showAlert: true,
         };
+      case SET_CURRENT_PAGE:
+      return { 
+        ...state, 
+        currentPage: action.payload 
+      };
 
     default:
       return state;

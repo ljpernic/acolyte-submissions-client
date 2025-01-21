@@ -17,6 +17,7 @@ function SubmissionFormFiction() {
     title: '',
     type: 'fiction', // Fixed as 'fiction'
     wordCount: '',
+    feedback: '',
     file: null, // Initialize as null
     coverLetter: '',
   });
@@ -78,14 +79,22 @@ function SubmissionFormFiction() {
     formData.append('title', values.title);
     formData.append('type', values.type); // 'fiction'
     formData.append('wordCount', values.wordCount);
+    formData.append('feedback', values.feedback);
     formData.append('coverLetter', values.coverLetter);
 
     // Append the renamed file to FormData
     formData.append('file', renamedFile); // Use the renamed file
 
     try {
-      await createSubmittedClient(formData); // Use FormData here
-      history.push('/submitted'); // Redirect after successful submission
+      const isSuccess = await createSubmittedClient(formData);
+
+    if (isSuccess) {
+      // Redirect only if the submission was successful
+      history.push('/submitted');
+    } else {
+      // Handle failure scenario if needed
+      setErrorMessage('An error occurred while submitting the form.');
+    }
     } catch (error) {
       console.error('Error submitting data:', error);
       setErrorMessage('An error occurred while submitting the form.');
@@ -101,7 +110,7 @@ function SubmissionFormFiction() {
           </div>
         )}
         <form className='form' onSubmit={onSubmit}>
-          <h3><strong>Acolyte Submissions System</strong></h3>
+          <h3><strong>Acolyte Submission System</strong></h3>
           <h4>Fiction Submission</h4>
           {/* name field */}
           <FormRow
@@ -147,6 +156,19 @@ function SubmissionFormFiction() {
             handleChange={handleChange}
             label="Word Count"
           />
+          <FormRow
+            type='radio'
+            name='feedback'
+            value={values.feedback}
+            placeholder='Would you like brief feedback on your story, if we are able?'
+            handleChange={handleChange}
+            label="Feedback requested?"
+            options={[
+              { value: "yes", label: "Yes" },
+              { value: "no", label: "No" },
+            ]}
+          />
+          <em>If we have feedback on your piece, would you like to receive it with our response? Note: We give feedback on less than 10% of submissions.</em><br /><br />
           {/* file field */}
           <FormRow
             type='file'
@@ -164,6 +186,9 @@ function SubmissionFormFiction() {
             label="Cover Letter"
           />
           {/* submit button */}
+          {/* <p>
+            Please Note: Submissions are currently closed.
+          </p> */}
           <button
             type='submit'
             className='btn btn-block'
@@ -186,7 +211,6 @@ const Wrapper = styled.section`
     margin-bottom: 1.38rem;
   }
   .form {
-    max-width: 400px;
     border-top: 5px solid var(--primary-500);
   }
 
@@ -207,6 +231,38 @@ const Wrapper = styled.section`
     color: var(--primary-500);
     cursor: pointer;
   }
+
+.radio-group {
+  display: flex;
+  gap: 10px;
+}
+
+.radio-label {
+  display: inline-block;
+  background-color: #ddd;
+  padding: 10px 20px;
+  font-family: Arial, sans-serif;
+  font-size: 22px;
+  border: 2px solid #444;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.radio-label:hover {
+  background-color: #1937bd;
+  color: white;
+}
+
+.radio-label input[type="radio"] {
+  display: none; /* Visually hide the radio button */
+}
+
+.radio-label input[type="radio"]:checked + span {
+  background-color: #1937bd;
+  color: white;
+  border-color: #007bff;
+}
 `;
 
 export default SubmissionFormFiction;

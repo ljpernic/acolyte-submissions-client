@@ -23,10 +23,13 @@ import {                                                                        
   VERARBEITEN_SUBMISSION_ERROR,
   UPDATE_READER_SUCCESS,
   UPDATE_READER_ERROR,
+  SET_CURRENT_PAGE,
 } from './actions'
 import reducer from './reducer'                                                // IMPORTS REDUCERS.
 
 const initialState = {                                                         // INITIAL VALUES OF FALSE, NULL, AND []
+  currentPage: 1,
+  dashboardType: "claimed",
   reader: null,
   role: null,
   isLoading: false,
@@ -39,14 +42,14 @@ const initialState = {                                                         /
 }
 const AppContext = React.createContext()                                      // ALLOWS CREATION OF APPCONTEXT.
 
-const AppProvider = ({ children }) => {                                       // FUNCTION TO CARRY OUT INDIVIDUAL SUB-FUNCTIONS (FETCH SUBS, LOG IN, ETC).
-  const [state, dispatch] = useReducer(reducer, initialState)
+const AppProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
     const reader = localStorage.getItem('reader');
     if (reader) {
       const newReader = JSON.parse(reader);
-      dispatch({ type: LOGIN_READER_SUCCESS, payload: newReader.name });
+      dispatch({ type: LOGIN_READER_SUCCESS, payload: newReader });
     }
   }, []);
 
@@ -60,6 +63,7 @@ const AppProvider = ({ children }) => {                                       //
   const memoizedThrottledPost = useMemo(() => throttle(axios.post, 100), []);
   const memoizedThrottledPatch = useMemo(() => throttle(axios.patch, 100), []);
 
+  
   // ADD READER
   const addReader = useCallback(async (readerInput) => {
     setLoading()
@@ -106,11 +110,11 @@ const AppProvider = ({ children }) => {                                       //
       const { data } = await memoizedThrottledPost(`api/v1/auth/login`, {
         ...readerInput,
       })
-      const loginPayload = [data.reader.name]
+      const loginPayload = [data.reader]
       dispatch({ type: LOGIN_READER_SUCCESS, payload: loginPayload })
       localStorage.setItem(
         'reader',
-        JSON.stringify({ name: data.reader.name, readerId: data.reader.readerId, token: data.token }),
+        JSON.stringify({ name: data.reader.name, readerId: data.reader.readerId, role: data.reader.role, token: data.token }),
       )
     } catch (error) {
       dispatch({ type: LOGIN_READER_ERROR })
@@ -137,15 +141,31 @@ const AppProvider = ({ children }) => {                                       //
   const fetchSubmissionsClient = useCallback(() => {
     setLoading();
     try {
-      memoizedThrottledGet(`/api/v1/submissions`).then(({ data }) => {
+      memoizedThrottledGet(`/api/v1/submissions`)
+      .then(({ data }) => {
         dispatch({ type: FETCH_SUBMISSIONS_SUCCESS, payload: data.submissions });
-      }).catch(error => {
+      })
+      .catch(error => {
         dispatch({ type: FETCH_SUBMISSIONS_ERROR });
       });
     } catch (error) {
       dispatch({ type: FETCH_SUBMISSIONS_ERROR });
     }
   }, [setLoading, memoizedThrottledGet]);
+
+// FETCH SINGLE SUBMISSION
+const fetchSingleSubmission = useCallback((submissionId) => {
+  setLoading();
+  try {
+    console.log("fetchSingleSubmission triggered.")
+    memoizedThrottledGet(`/api/v1/submissions/${submissionId}`)
+    .then(({ data }) => {
+      dispatch({ type: FETCH_SINGLE_SUBMISSION_SUCCESS, payload: data.submission });
+    })
+  } catch (error) {
+    dispatch({ type: FETCH_SINGLE_SUBMISSION_ERROR });
+  }
+}, [setLoading, memoizedThrottledGet]);
 
   // CREATE SUBMITTED
   const createSubmittedClient = useCallback(async (formData) => {
@@ -162,9 +182,11 @@ const AppProvider = ({ children }) => {                                       //
   
       //console.log('Response data:', response.data);
       dispatch({ type: CREATE_SUBMISSION_SUCCESS, payload: response.data.submission });
+      return true;
     } catch (error) {
       console.error('Error in createSubmittedClient:', error);
       dispatch({ type: CREATE_SUBMISSION_ERROR });
+      return false;
     }
   }, [setLoading]);
  
@@ -179,17 +201,6 @@ const AppProvider = ({ children }) => {                                       //
       dispatch({ type: DELETE_SUBMISSION_ERROR })
     }
   }, [fetchSubmissionsClient, setLoading]);
-
-  // FETCH SINGLE SUBMISSION
-  const fetchSingleSubmission = useCallback(async (submissionId) => {
-    setLoading()
-    try {
-      const { data } = await memoizedThrottledGet(`api/v1/submissions/${submissionId}`)
-      dispatch({ type: FETCH_SINGLE_SUBMISSION_SUCCESS, payload: data.submission })
-    } catch (error) {
-      dispatch({ type: FETCH_SINGLE_SUBMISSION_ERROR })
-    }
-  }, [setLoading, memoizedThrottledGet]);
 
   // UPDATE SUBMISSION
   const verarbeitenSubmissionClient = useCallback(async (submissionId, readerInput) => {
@@ -219,12 +230,13 @@ const AppProvider = ({ children }) => {                                       //
           Pragma: 'no-cache',
         },
       });
+      fetchSubmissionsClient();  // Included to make sure items immediately go into the claimed dashboard.
       dispatch({ type: UPDATE_READER_SUCCESS, payload: { submissionId, readerId: data.reader } });
     } catch (error) {
       console.error("Error updating submission:", error);
       dispatch({ type: UPDATE_READER_ERROR });
     }
-  }, [setLoading, memoizedThrottledPatch]);
+  }, [setLoading, memoizedThrottledPatch, fetchSubmissionsClient]);
 
   // UNCLAIM SUBMISSION
   const unAssignSubmissionClient = useCallback(async (submissionId) => {
@@ -232,7 +244,7 @@ const AppProvider = ({ children }) => {                                       //
     try {
       const { data } = await memoizedThrottledPatch(`api/v1/submissions/unclaim/${submissionId}`, {
         submissionId,
-        reader: "unclaimed",  // Set the reader field to "unclaimed"
+        reader: ["unclaimed"],  // Set the reader field to "unclaimed"
       }, {
         headers: {
           'If-Modified-Since': new Date(0),
@@ -248,6 +260,11 @@ const AppProvider = ({ children }) => {                                       //
     }
   }, [setLoading, memoizedThrottledPatch]);
 
+  //SET CURRENT PAGE
+  const handlePageChange = useCallback((page) => {
+    dispatch({ type: SET_CURRENT_PAGE, payload: page });
+  }, []);
+  
   const contextValue = useMemo(() => ({
     ...state,
     setLoading,
@@ -262,6 +279,7 @@ const AppProvider = ({ children }) => {                                       //
     verarbeitenSubmissionClient,
     assignSubmissionClient,
     unAssignSubmissionClient,
+    handlePageChange,
   }), [
     state,
     setLoading,
@@ -275,7 +293,8 @@ const AppProvider = ({ children }) => {                                       //
     fetchSingleSubmission,
     verarbeitenSubmissionClient,
     assignSubmissionClient,
-    unAssignSubmissionClient
+    unAssignSubmissionClient,
+    handlePageChange
   ]);
 
   return (

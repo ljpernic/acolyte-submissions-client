@@ -20,9 +20,9 @@ function Home() {
         />
         </div>
           <div className='info'>
-            <h1>Acolyte Submissions System</h1>
+            <h1>Acolyte Submission System</h1>
             <p style={{'fontSize':'1.2em'}}>
-              Welcome to the Acolyte Submissions System! This open-source app will soon handle all of Haven Spec Magazine's submissions. It will 
+              Welcome to the Acolyte Submission System! This open-source app will soon handle all of Haven Spec Magazine's submissions. It will 
               also be freely available to any other magazine that might want to implement it for themselves. It's been years in the making, and 
               it's really going to streamline our workflow so that we can spend more time reading stories and poems! 
             </p>
@@ -30,15 +30,18 @@ function Home() {
               Like the submission system's logo? His name is Florian, and he was designed 
               by the amazing artist <a href="https://www.haleygrunloh.com/">Haley Grunloh</a>!
             </p>
-            <Link to='/form-fiction' className='btn-home hero-btn-home'>
+            <p style={{'fontSize':'1.2em'}}>
+              Haven Spec Magazine is currently <strong>closed</strong> to submissions.
+            </p>
+            {/* <Link to='/form-fiction' className='btn-home hero-btn-home'>
               Submit Fiction
             </Link><br /><br />
             <Link to='/form-poetry' className='btn-home hero-btn-home'>
               Submit Poetry
             </Link><br /><br />
-            {/* <Link to='/form-nonfiction' className='btn-home hero-btn-home'>
+            <a href="https://www.cognitoforms.com/HavenSpec/HavenSpecMagazine" className='btn-home hero-btn-home'>
               Submit Non-fiction
-            </Link><br /><br /> */}
+            </a><br /><br /> */}
             {/* <Link to='/login' className='btn hero-btn'>
               Login
               </Link><br /><br /> */}

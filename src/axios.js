@@ -1,12 +1,17 @@
+//////// AXIOS.JS -- CONFIGURES AXIOS INSTANCE FOR MANAGING REQUESTS AND RESPONSES IN REACT WEB APP ////////
+
 import axios from 'axios';
 
-// BASE URL. MUST MATCH PORT IN SERVER/APP.JS!
+// SETS DEFAULT BASE URL FOR ALL HTTP REQUESTS SENT USING AXIOS. BASE URL MUST MATCH PORT IN SERVER/APP.JS!
 axios.defaults.baseURL = "http://localhost:5000"; // FOR TESTING
 //axios.defaults.baseURL = process.env.REACT_APP_BASE_URL; // FOR PRODUCTION
 
+// DEFAULT CACHE-CONTROL HEADER. DISABLES CACHING FOR ALL REQUESTS BY DEFAULT, ENSURING FRESH DATA IS FETCHED EACH TIME.
 axios.defaults.headers.common['Cache-Control'] = 'no-cache';
 
-// Request interceptor
+// REQUEST INTERCEPTOR. RUNS BEFORE EVERY REQUEST IS SENT. RETRIEVES THE READER OBJECT FROM LOCALSTORAGE IF IT CONTAINS AUTHENTICATION 
+// DETAILS. IF A TOKEN IS FOUND, IT ADDS AN AUTHORIZATION HEADER WITH BEARER <TOKEN>, ENABLING AUTHENTICATION REQUESTS. IT ALSO 
+// ADDS ADDITIONAL HEADERS (CACHE-CONTROL, PRAGMA, ETC.) TO PREVENT CACHING.
 axios.interceptors.request.use((config) => {
   try {
     const reader = localStorage.getItem('reader');
@@ -15,7 +20,6 @@ axios.interceptors.request.use((config) => {
       config.headers.authorization = `Bearer ${token}`;
     }
 
-    // Disable caching headers
     config.headers['Cache-Control'] = 'no-cache';
     config.headers['Pragma'] = 'no-cache';
     config.headers['If-Modified-Since'] = new Date(0);
@@ -28,7 +32,7 @@ axios.interceptors.request.use((config) => {
   }
 });
 
-// Response interceptor
+// RESPONSE INTERCEPTORS. PROCESSES EACH RESPONSE. IF IT HAS A 401/409 STATUS CODE, INDICATING AN AUTHENTICATION ISSUE, IT LOGS AN ERROR. 
 axios.interceptors.response.use(
   (response) => response,
   (error) => {

@@ -101,7 +101,7 @@ return (
   </div>
 )}
           <form className='form' onSubmit={onSubmit}>
-          <h3><strong>Acolyte Submissions System</strong></h3>
+          <h3><strong>Acolyte Submission System</strong></h3>
             <h4>Poetry Submission</h4>
             {/* name field */}
               <FormRow

@@ -1,23 +1,42 @@
 //////// COMPONENT
-//////// RETURNS SUBMISSIONS FOR LOGGED-IN READER BASED ON ENTRY STATUS AND READER ////////
+//////// SUBMISSIONSCOMBINED COMPONENT DISPLAYS A PAGINATED LIST OF SUBMISSIONS BASED ON A SELECTED DASHBOARDTYPE. 
+//////// IT INCLUDES LOGIC TO FILTER SUBMISSIONS, HANDLE PAGINATION, NAVIGATE SUBMISSIONS, AND ASSIGN SUBMISSIONS.
 
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';                                            // USED TO NAVIGATE TO DIFFERENT ROUTES
 import styled from 'styled-components';
-import moment from 'moment';
+import moment from 'moment';                                                              // HANDLES DATE FORMATTING
 import SubmissionColumns from './SubmissionColumns';
 import { useGlobalContext } from '../context/appContext';
-import debounce from 'lodash.debounce';
+import debounce from 'lodash.debounce';                                                   // DEBOUNCES FUNCTION SO ACTIONS AREN'T TRIGGERED TOO MUCH.
 
+// RECEIVES DASHBOARDTYPE AS A PROP FROM PARENT COMPONENT, WHICH DETERMINES THE TYPE OF SUBMISSIONS TO DISPLAY.
 const SubmissionsCombined = ({ dashboardType }) => {
   const history = useHistory();
-  const { submissions, isLoading, assignSubmissionClient } = useGlobalContext();
-  const [claimedSubmissions, setClaimedSubmissions] = useState(new Set());
+  const { submissions, isLoading, assignSubmissionClient } = useGlobalContext();          // PULLS LIST OF ALL SUBMISSIONS FROM GLOBAL CONTEXT.
+  const [claimedSubmissions, setClaimedSubmissions] = useState(new Set());                // TRACKS SUBMISSIONS ALREADY CLAIMED BY USER IN SESSION.
   const itemsPerPage = 10;
-  const [currentPage, setCurrentPage] = useState(1);
-  const isMounted = useRef(true);
+  const isMounted = useRef(true);                                                         // CHECKS IF COMPONENT IS MOUNTED TO AVOID RE-RENDERS.
+
+  const [currentPage, setCurrentPage] = useState(() => {
+    // Retrieve the page number from localStorage, default to 1 if not found
+    const savedPage = localStorage.getItem('currentPage');
+    return savedPage ? Number(savedPage) : 1; // Default to 1
+  });
+  const prevDashboardType = useRef(dashboardType); 
+
+  useEffect(() => {
+    if (prevDashboardType.current !== dashboardType) {
+      // Only reset the current page to 1 if the dashboardType has changed
+      setCurrentPage(1);
+    }
+    // Update the ref to the current dashboardType
+    prevDashboardType.current = dashboardType;
+  }, [dashboardType]);  // Effect runs when dashboardType changes
 
   const debouncedNavigate = debounce((id) => {
+    sessionStorage.setItem('dashboardType', dashboardType);
+    console.log('dashboardType: '+ dashboardType)
     history.push(`/verarbeiten/${id}`);
   }, 100);
 
@@ -25,35 +44,60 @@ const SubmissionsCombined = ({ dashboardType }) => {
     return submissions.filter(entry => {
       switch (dashboardType) {
         case 'claimed':
-          return entry.status === 'Open' && entry.reader !== 'unclaimed';
+          return (
+            entry.status === 'Open' &&
+            Array.isArray(entry.reader) &&
+            entry.reader[0] !== 'unclaimed'
+          );
         case 'old':
-          return entry.status !== 'Open' && entry.status !== 'Recommended';
+          return (
+            entry.status !== 'Open' &&
+            (!Array.isArray(entry.status) || entry.status[0] !== 'Recommended')
+          );
         case 'recommended':
-          return entry.status === 'Recommended' && entry.reader !== 'unclaimed';
+          return (
+            entry.status === 'Recommended' &&
+            Array.isArray(entry.reader) &&
+            entry.reader[0] !== 'unclaimed'
+          );
         case 'unclaimed':
-          return entry.reader === 'unclaimed';
+          return (
+            entry.status === 'Open' &&
+            Array.isArray(entry.reader) &&
+            entry.reader[0] === 'unclaimed'
+          );
         default:
           return false;
       }
     });
   }, [dashboardType, submissions]);
 
+  // RETURNS PAGINATED LIST OF FILTERED SUBMISSIONS FOR THE CURRENT PAGE AND CALCULATES TOTALPAGES OF FILTERED SUBMISSIONS.
   const displayedSubmissions = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return filteredSubmissions.slice(startIndex, endIndex);
-  }, [currentPage, filteredSubmissions, itemsPerPage]);
+  }, [currentPage, filteredSubmissions]);
 
   const totalPages = useMemo(() => Math.ceil(filteredSubmissions.length / itemsPerPage), [filteredSubmissions, itemsPerPage]);
 
+  useEffect(() => {
+    // Save the currentPage to localStorage whenever it changes
+    localStorage.setItem('currentPage', currentPage);
+  }, [currentPage]);
+
+
+  // UPDATES PAGE NUMBER, TRIGGERING RE-RENDER TO SHOW THE SUBMISSIONS FOR THAT PAGE.
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
   };
 
+  // RETRIEVES CURRENT READERID FROM LOCALSTORAGE. USED FOR ASSIGNING SUBMISSIONS TO THIS READER.
   const theCurrentReader = localStorage.getItem('reader');
   const theCurrentReaderDetails = JSON.parse(theCurrentReader);
   const theCurrentReaderId = theCurrentReaderDetails.readerId;
 
+  // TRACKS COMPONENT MOUNT STATUS TO AVOID SETTING STATE IF UNMOUNTED.
   useEffect(() => {
     isMounted.current = true;
     return () => {
@@ -61,12 +105,12 @@ const SubmissionsCombined = ({ dashboardType }) => {
     };
   }, []);
 
-  useEffect(() => {
-    setCurrentPage(1); // Reset currentPage to 1 whenever dashboardType changes
-  }, [dashboardType]);
-
+  // HANDLEASSIGNSUBMISSION ASSIGNS SUBMISSION TO CURRENT READER BY CALLING ASSIGNSUBMISSIONCLIENT. IF SUCCESSFUL, UPDATES CLAIMEDSUBMISSIONS. 
+  // DEBOUNCEDASSIGNSUBMISSION IS THE DEBOUNCED VERSION MEANT TO PREVENT REPEATED RAPID SUBMISSION ASSIGNMENTS.
   const handleAssignSubmission = useCallback(async (submissionId, reader) => {
     console.log('Assigning submission...');
+    console.log('submissionId: ' + submissionId);
+    console.log('reader: ' + reader);
     try {
       await assignSubmissionClient(submissionId, reader);
       if (isMounted.current) {
@@ -80,12 +124,14 @@ const SubmissionsCombined = ({ dashboardType }) => {
   
   const debouncedAssignSubmission = debounce(handleAssignSubmission, 100);
 
+  // HANDLES CLICK ON SUBMISSION. IF UNCLAIMED, ASSIGNS IT TO CURRENT READER. OTHERWISE, DOES NOTHING.
   const handleArticleClick = (submissionId) => {
     if (!claimedSubmissions.has(submissionId)) {
       debouncedAssignSubmission(submissionId, theCurrentReaderId);
     }
   };
 
+  // ISLOADING DISPLAYS WHEN DATA IS BEING FETCHED. EMPTY STATE SHOWS MESSAGE IF THERE ARE NO SUBMISSIONS FOR SELECTED DASHBOARDTYPE.
   if (isLoading) {
     return <div className='loading'></div>;
   }
@@ -106,8 +152,7 @@ const SubmissionsCombined = ({ dashboardType }) => {
       <Container>
         {displayedSubmissions.map((item) => {
           const { _id: id, name, title, type, wordCount, status, createdAt } = item;
-          const date = moment(createdAt).format('MMMM Do, YYYY');
-
+          const date = moment(createdAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('MMMM Do, YYYY');
           const handleClick = () => {
             if (dashboardType === 'unclaimed') {
               // Perform action for unclaimed submissions
@@ -142,17 +187,17 @@ const SubmissionsCombined = ({ dashboardType }) => {
   })}
 </Container>
       <Pagination>
-        <div className="paginationCSS">
-          {Array.from({ length: totalPages }).map((_, index) => (
-            <div
-              key={index}
-              className={`PageButton ${index + 1 === currentPage ? 'active' : ''}`}
-              onClick={() => handlePageChange(index + 1)}
-            >
-              {index + 1}
-            </div>
-          ))}
-        </div>
+      <div className="paginationCSS">
+        {Array.from({ length: totalPages }).map((_, index) => (
+          <div
+            key={index}
+            className={`PageButton ${index + 1 === currentPage ? 'active' : ''}`}
+            onClick={() => handlePageChange(index + 1)}
+          >
+            {index + 1}
+          </div>
+        ))}
+      </div>
       </Pagination>
     </>
   );

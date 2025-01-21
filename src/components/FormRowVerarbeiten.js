@@ -28,7 +28,7 @@ const FormRowVerarbeiten = ({
         accept={accept}
         onChange={handleChange}
         className='form-input'
-        readOnly={status !== "Open" || (status === "Open" && !isEIC)}
+        readOnly={!isEIC}
         placeholder={placeholder}
       />
     </div>
