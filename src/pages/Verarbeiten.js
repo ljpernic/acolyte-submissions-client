@@ -124,10 +124,10 @@ function Update() {
 
   const thankYouVerarbeiten = "Thank you for your submission of " + values.title
   const magazineVerarbeiten = " to Haven Spec Magazine. "
-  const unfortunatelyVerarbeiten = "Unfortunately, we've decided to pass on this, but we wish you the best of luck on your writing and publishing endeavors. "
-  const happyVerarbeiten = "We would be happy to consider anything else you might write!"
+  const unfortunatelyVerarbeiten = "Unfortunately, we've decided not to accept this work for publication, but we wish you the best of luck on your writing and publishing endeavors. "
+  const happyVerarbeiten = "We would be happy to consider anything else you might write."
   const subjectiveVerarbeiten = "That's just our subjective opinion, of course, but we appreciated the chance to look at your work, and we hope you send us more. "
-  const recommendVerarbeiten = "This is just a quick note that we've held this piece for further consideration. You should hear from us again in the next couple of months. "
+  const recommendVerarbeiten = "This is just a quick note that we've held it for further consideration. You should hear from us again in the next couple of months. "
 
 const readerNotesLabel = newStatus === 'Rejected, Third Round' ? 'Feedback Sent to Author' : 'Editor Notes';
 
@@ -270,9 +270,6 @@ const handleUnclaimSubmission = async (id) => {
                   {values.type}
               </div> 
               <div className='form-row action-div-WC-S'>
-                <label htmlFor='status' className='form-label' style={{marginBottom : '20px'}}>
-                <strong>Status</strong>
-                </label>
                 <StatusContainer className='status' status={values.status}>
                       <strong>{values.status}</strong>
                     </StatusContainer>
@@ -281,9 +278,9 @@ const handleUnclaimSubmission = async (id) => {
               {values.feedback === null 
   ? 'Null' 
   : values.feedback === false 
-  ? 'No feedback requested' 
+  ? <b>No feedback requested</b> 
   : values.feedback === true 
-  ? 'Feedback requested' 
+  ? <b>Feedback requested</b> 
   : (
       <div className='form-row action-div-WC-S'>
         <label
@@ -505,9 +502,9 @@ const Container = styled.section`
     border-radius: var(--borderRadius);
     text-transform: capitalize;
     letter-spacing: var(--letterSpacing);
-    text-align: center;
-    width: 150px;
-    padding: 10px;
+    display: inline-block;
+    line-height: 20px;
+    padding: 5px;
   }
   .back-home {
     text-align: center;

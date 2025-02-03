@@ -7,40 +7,46 @@ const FormRow = ({
   horizontal,
   placeholder,
   label,
-  options,  // Add options for radio buttons
+  options, // For radio buttons
 }) => {
   return (
-    <div className='form-row'>
+    <div className="form-row">
       {!horizontal && (
-        <label htmlFor={name} className='form-label'>
+        <label htmlFor={name} className="form-label">
           <strong>{label}</strong>
         </label>
       )}
+
       {type === "radio" ? (
-        // Dynamically render radio buttons if the type is "radio"
-<div className="radio-group">
-  {options.map((option) => (
-    <label key={option.value} className="radio-label">
-      <input
-        type="radio"
-        name={name}
-        value={option.value}
-        checked={value === option.value}
-        onChange={handleChange}
-      />
-      <span style={{'padding':'10px'}}>{option.label}</span> {/* Span gets styled when input is checked */}
-    </label>
-  ))}
-</div>
+        <div className="radio-group">
+          {options.map((option) => {
+            const isChecked =
+              typeof value === "boolean"
+                ? value === (option.value === "yes") // Convert "yes"/"no" correctly
+                : value === option.value;
+
+            return (
+              <label key={option.value} className="radio-label">
+                <input
+                  type="radio"
+                  name={name}
+                  value={option.value}
+                  checked={isChecked}
+                  onChange={handleChange}
+                />
+                <span className="radio-text">{option.label}</span> {/* Ensure label is styled */}
+              </label>
+            );
+          })}
+        </div>
       ) : (
-        // Default for other types (text, email, etc.)
         <input
           type={type}
           value={value}
           name={name}
           accept={accept}
           onChange={handleChange}
-          className='form-input'
+          className="form-input"
           placeholder={placeholder}
         />
       )}

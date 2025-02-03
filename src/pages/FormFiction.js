@@ -27,20 +27,15 @@ function SubmissionFormFiction() {
 
   const handleChange = (e) => {
     const { name, type, files, value } = e.target;
-
-    if (type === 'file') {
-      if (files && files.length > 0) {
-        setValues(prevValues => ({
-          ...prevValues,
-          file: files[0] // Preserve the file object correctly
-        }));
-      }
-    } else {
-      setValues(prevValues => ({
-        ...prevValues,
-        [name]: value
-      }));
-    }
+  
+    setValues((prevValues) => ({
+      ...prevValues,
+      [name]: type === "file"
+        ? files?.[0] || null // Handle file input safely
+        : type === "radio"
+        ? value === "yes" // Convert "yes" to `true` and "no" to `false`
+        : value
+    }));
   };
 
   const renameFile = (file, name) => {
@@ -159,8 +154,7 @@ function SubmissionFormFiction() {
           <FormRow
             type='radio'
             name='feedback'
-            value={values.feedback}
-            placeholder='Would you like brief feedback on your story, if we are able?'
+            value={values.feedback} // Ensure value is used correctly
             handleChange={handleChange}
             label="Feedback requested?"
             options={[

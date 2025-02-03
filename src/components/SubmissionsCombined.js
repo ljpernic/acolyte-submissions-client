@@ -151,8 +151,10 @@ const SubmissionsCombined = ({ dashboardType }) => {
       <SubmissionColumns />
       <Container>
         {displayedSubmissions.map((item) => {
-          const { _id: id, name, title, type, wordCount, status, createdAt } = item;
-          const date = moment(createdAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('MMMM Do, YYYY');
+          const { _id: id, name, title, type, wordCount, status } = item;
+          console.log('item.createdAt: ' + item.createdAt)
+          const date = moment.utc(item.createdAt).format('MMMM Do, YYYY');
+          console.log('date : '+ date);
           const handleClick = () => {
             if (dashboardType === 'unclaimed') {
               // Perform action for unclaimed submissions
